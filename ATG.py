@@ -10,6 +10,7 @@ cl.init(autoreset=True)
 
 
 def gen_struct():
+    print(cl.Fore.CYAN + 'DEBUG:   gen_struct()')  # debug
 
     ckt_name = input(
         '    Please input desired circuit file name\n' + cl.Fore.YELLOW + 'ATG.py>>File Name> ' + cl.Style.RESET_ALL)
@@ -29,31 +30,48 @@ def gen_struct():
               '-Ensure your circuit is within the benchmarks folder\n        '
               '-Ensure the benchmarks folder is in the same directory as this python file\n        '
               '-Ensure you add [filename].ckt to when prompted for name\n')
+        comms()
         return 0
 
     # PARSE HERE
 
+    print(cl.Fore.GREEN +
+          '✓ SUCESSFULLY CREATE DATA STRUCT FOR CIRCUIT:' + ckt_name)
     return 0
 
 # Option 1: Generate fault collapse
 
 
 def fault_coll():
+    """Option 2 - Perform fault collapsing
+    """
+    print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
     return 0
 
 # Prints console commands
 
+# Simulate cir
+
+
+def sim():
+    """Option 3: - Simulate Circuit
+    """
+    print(cl.Fore.CYAN + 'DEBUG:   sim()')  # debug
+    return 0
+
 
 def comms():
+    """ Option 'help' - Prints console commands
+    """
     print(cl.Fore.BLUE + 'Enter an option:\n'
-          '0: generate data structures\n'
-          '1: perform fault collapsing and create fault classes\n'
-          '2:Display found fault classes\n'
-          '3:Simulate the circuit\n'
-          '4:PODEM algo\n'
-          '5:D-Algorithm\n'
-          '6:Placeholder algo\n'
-          '7: Reset ATG\n'
+          ' 0: generate data structures\n'
+          ' 1: perform fault collapsing and create fault classes\n'
+          ' 2: Display found fault classes\n'
+          ' 3: Simulate the circuit\n'
+          ' 4: PODEM algo\n'
+          ' 5: D-Algorithm\n'
+          ' 6: Placeholder algo\n'
+          ' 7: Reset ATG\n'
           '\'help\': Display console options again')
 
 
@@ -65,13 +83,12 @@ while (True):
     match option:
         case '0':
             gen_struct()
-            comms()
         case '1':
-            gen_struct()
+            fault_coll()
         case '2':
             gen_struct()
         case '3':
-            gen_struct()
+            sim()
         case '4':
             gen_struct()
         case '5':
