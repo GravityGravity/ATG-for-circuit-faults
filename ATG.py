@@ -68,6 +68,13 @@ def Dalgo():
     return 0
 
 
+def not_imp(option_num):
+    """Option 6 and 7: Test generation algorithms not implemented
+    """
+    print(cl.Fore.CYAN + 'DEBUG:   not_imp()')  # debug
+    return 0
+
+
 def comms():
     """ Option 'help' - Prints console commands
     """
@@ -76,9 +83,10 @@ def comms():
           ' 1: perform fault collapsing and create fault classes\n'
           ' 2: Display found fault classes\n'
           ' 3: Simulate the circuit\n'
-          ' 4: PODEM algo\n'
-          ' 5: D-Algorithm\n'
-          ' 6: Placeholder algo\n'
+          ' 4: Generate test (D-Algorithm)\n'
+          + cl.Fore.WHITE + cl.Style.DIM +
+          ' 5: Generate test (PODEM) --not implemented\n'
+          ' 6: Generate tests (Boolean Satifaibility) --not implemented\n' + cl.Style.NORMAL + cl.Fore.BLUE +
           ' 7: Exit\n'
           '\'help\': Display console options again')
 
@@ -100,9 +108,9 @@ while (True):
         case '4':
             gen_struct()
         case '5':
-            gen_struct()
+            not_imp('5')
         case '6':
-            gen_struct()
+            not_imp('6')
         case '7':
             print(cl.Back.YELLOW + '    EXITING PROGRAM    ')
             exit(0)
