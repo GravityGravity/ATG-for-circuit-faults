@@ -1,5 +1,6 @@
 # FILE: ATG.py
 
+import sys
 import os
 import colorama as cl
 
@@ -10,6 +11,9 @@ cl.init(autoreset=True)
 
 
 def gen_struct():
+    """Option 0 - Generate data structure for circuit
+    """
+
     print(cl.Fore.CYAN + 'DEBUG:   gen_struct()')  # debug
 
     ckt_name = input(
@@ -43,7 +47,7 @@ def gen_struct():
 
 
 def fault_coll():
-    """Option 2 - Perform fault collapsing
+    """Option 1 - Perform fault collapsing
     """
     print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
     return 0
@@ -60,6 +64,10 @@ def sim():
     return 0
 
 
+def Dalgo():
+    return 0
+
+
 def comms():
     """ Option 'help' - Prints console commands
     """
@@ -71,7 +79,7 @@ def comms():
           ' 4: PODEM algo\n'
           ' 5: D-Algorithm\n'
           ' 6: Placeholder algo\n'
-          ' 7: Reset ATG\n'
+          ' 7: Exit\n'
           '\'help\': Display console options again')
 
 
@@ -96,7 +104,8 @@ while (True):
         case '6':
             gen_struct()
         case '7':
-            gen_struct()
+            print(cl.Back.YELLOW + '    EXITING PROGRAM    ')
+            exit(0)
         case 'help':
             comms()
         case _:
