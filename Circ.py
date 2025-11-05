@@ -1,7 +1,7 @@
 # FILE: Circ.py (Circuit structure)
 
 from enum import Enum, auto
-from B_logic import L, g_types
+from B_logic import *
 class Circuit:
 
     def __init__(self):
