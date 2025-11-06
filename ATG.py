@@ -73,7 +73,7 @@ def Dalgo():
 
 
 def not_imp(option_num):
-    """Option 6 and 7: Test generation algorithms not implemented
+    """Option 5 and 6: Test generation algorithms not implemented
     """
     print(cl.Fore.CYAN + 'DEBUG:   not_imp()')  # debug
     return 0
@@ -100,7 +100,7 @@ comms()
 while (True):
     option = input(cl.Fore.YELLOW + 'ATG.py> ' + cl.Style.RESET_ALL)
 
-    match option:
+    match option.lower():
         case '0':
             gen_struct()
         case '1':
