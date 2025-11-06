@@ -1,10 +1,10 @@
-/* FILE: parse.g4
+/* FILE: ATGparser.g4
 
     Description:
         Parses .ckt file formats and creates a circuit data structure that is used by ATG.py
  */
  
-grammar Parse;
+grammar ATGparser;
 
 // ---------- PARSER RULES ----------
 program
@@ -28,5 +28,4 @@ WS       : [ \t]+ -> skip ;
 
 // Any other $-line is a comment: "$ blah blah"
 COMMENT  : '$' ~[\r\n]* -> skip ;
-
 ERROR    : . -> skip ;
