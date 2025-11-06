@@ -3,22 +3,30 @@
     Description:
         Parses .ckt file formats and creates a circuit data structure that is used by ATG.py
  */
-grammar parse;
+ 
+grammar Parse;
 
-// Parser Rules
-program : ;
-input : ID PI NEWLINE;
-output : ID PO NEWLINE;
-gate : ID TYPE ID ID NEWLINE | ID TYPE ID ID END;
+// ---------- PARSER RULES ----------
+program
+  : (inputDecl | outputDecl | gateDecl | NEWLINE)* END? EOF
+  ;
 
+inputDecl   : ID PI NEWLINE ;
+outputDecl  : ID PO NEWLINE ;
+gateDecl    : ID TYPE ID ID NEWLINE ;   // out type in1 in2
 
-// Lexer Rules
-PI : '$... primary input' ;
-PO : '$... primary output' ;
-END : '$ end of circuit description' ;
-COMMENT : '$'[.]+ ;
+// ---------- LEXER RULES ----------
+PI   : '$... primary input' ;
+PO   : '$... primary output' ;
+END  : '$ end of circuit description' NEWLINE? ;
+
 TYPE : 'and' | 'nand' | 'or' | 'nor' | 'not' | 'xor' ;
-WS : [ \t\r]+ -> skip;
-ID : [a-zA-Z_][a-zA-Z_0-9]* ;
-NEWLINE : [\n]+;
-ERROR : [.] -> skip;
+
+ID       : [a-zA-Z_][a-zA-Z_0-9]* ;
+NEWLINE  : [\r\n]+ ;
+WS       : [ \t]+ -> skip ;
+
+// Any other $-line is a comment: "$ blah blah"
+COMMENT  : '$' ~[\r\n]* -> skip ;
+
+ERROR    : . -> skip ;
