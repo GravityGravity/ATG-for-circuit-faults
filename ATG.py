@@ -1,8 +1,12 @@
 # FILE: ATG.py
 
+# Description:
+#   Automatic Test Generation file
+
 import sys
 import os
 import colorama as cl
+from Circ import *
 
 # Auto reset colored console print
 cl.init(autoreset=True)
@@ -86,7 +90,7 @@ def comms():
           ' 4: Generate test (D-Algorithm)\n'
           + cl.Fore.WHITE + cl.Style.DIM +
           ' 5: Generate test (PODEM) --not implemented\n'
-          ' 6: Generate tests (Boolean Satifaibility) --not implemented\n' + cl.Style.NORMAL + cl.Fore.BLUE +
+          ' 6: Generate test (Boolean Satifaibility) --not implemented\n' + cl.Style.NORMAL + cl.Fore.BLUE +
           ' 7: Exit\n'
           '\'help\': Display console options again')
 
