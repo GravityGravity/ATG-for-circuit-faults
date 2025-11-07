@@ -10,17 +10,19 @@ else:
 
 def serializedATN():
     return [
-        4,1,9,37,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,5,0,13,
+        4,1,9,40,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,5,0,13,
         8,0,10,0,12,0,16,9,0,1,0,3,0,19,8,0,1,0,1,0,1,1,1,1,1,1,1,1,1,2,
-        1,2,1,2,1,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,0,0,4,0,2,4,6,0,0,37,0,14,
-        1,0,0,0,2,22,1,0,0,0,4,26,1,0,0,0,6,30,1,0,0,0,8,13,3,2,1,0,9,13,
-        3,4,2,0,10,13,3,6,3,0,11,13,5,6,0,0,12,8,1,0,0,0,12,9,1,0,0,0,12,
-        10,1,0,0,0,12,11,1,0,0,0,13,16,1,0,0,0,14,12,1,0,0,0,14,15,1,0,0,
-        0,15,18,1,0,0,0,16,14,1,0,0,0,17,19,5,3,0,0,18,17,1,0,0,0,18,19,
-        1,0,0,0,19,20,1,0,0,0,20,21,5,0,0,1,21,1,1,0,0,0,22,23,5,5,0,0,23,
-        24,5,1,0,0,24,25,5,6,0,0,25,3,1,0,0,0,26,27,5,5,0,0,27,28,5,2,0,
-        0,28,29,5,6,0,0,29,5,1,0,0,0,30,31,5,5,0,0,31,32,5,4,0,0,32,33,5,
-        5,0,0,33,34,5,5,0,0,34,35,5,6,0,0,35,7,1,0,0,0,3,12,14,18
+        1,2,1,2,1,2,1,3,1,3,1,3,4,3,34,8,3,11,3,12,3,35,1,3,1,3,1,3,0,0,
+        4,0,2,4,6,0,0,41,0,14,1,0,0,0,2,22,1,0,0,0,4,26,1,0,0,0,6,30,1,0,
+        0,0,8,13,3,2,1,0,9,13,3,4,2,0,10,13,3,6,3,0,11,13,5,6,0,0,12,8,1,
+        0,0,0,12,9,1,0,0,0,12,10,1,0,0,0,12,11,1,0,0,0,13,16,1,0,0,0,14,
+        12,1,0,0,0,14,15,1,0,0,0,15,18,1,0,0,0,16,14,1,0,0,0,17,19,5,3,0,
+        0,18,17,1,0,0,0,18,19,1,0,0,0,19,20,1,0,0,0,20,21,5,0,0,1,21,1,1,
+        0,0,0,22,23,5,5,0,0,23,24,5,1,0,0,24,25,5,6,0,0,25,3,1,0,0,0,26,
+        27,5,5,0,0,27,28,5,2,0,0,28,29,5,6,0,0,29,5,1,0,0,0,30,31,5,5,0,
+        0,31,33,5,4,0,0,32,34,5,5,0,0,33,32,1,0,0,0,34,35,1,0,0,0,35,33,
+        1,0,0,0,35,36,1,0,0,0,36,37,1,0,0,0,37,38,5,6,0,0,38,7,1,0,0,0,4,
+        12,14,18,35
     ]
 
 class ATGparserParser ( Parser ):
@@ -285,6 +287,13 @@ class ATGparserParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
+            self.output = None # Token
+            self.type_ = None # Token
+            self._ID = None # Token
+            self.inputs = list() # of Tokens
+
+        def NEWLINE(self):
+            return self.getToken(ATGparserParser.NEWLINE, 0)
 
         def ID(self, i:int=None):
             if i is None:
@@ -294,9 +303,6 @@ class ATGparserParser ( Parser ):
 
         def TYPE(self):
             return self.getToken(ATGparserParser.TYPE, 0)
-
-        def NEWLINE(self):
-            return self.getToken(ATGparserParser.NEWLINE, 0)
 
         def getRuleIndex(self):
             return ATGparserParser.RULE_gateDecl
@@ -316,17 +322,27 @@ class ATGparserParser ( Parser ):
 
         localctx = ATGparserParser.GateDeclContext(self, self._ctx, self.state)
         self.enterRule(localctx, 6, self.RULE_gateDecl)
+        self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 30
-            self.match(ATGparserParser.ID)
+            localctx.output = self.match(ATGparserParser.ID)
             self.state = 31
-            self.match(ATGparserParser.TYPE)
-            self.state = 32
-            self.match(ATGparserParser.ID)
-            self.state = 33
-            self.match(ATGparserParser.ID)
-            self.state = 34
+            localctx.type_ = self.match(ATGparserParser.TYPE)
+            self.state = 33 
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            while True:
+                self.state = 32
+                localctx._ID = self.match(ATGparserParser.ID)
+                localctx.inputs.append(localctx._ID)
+                self.state = 35 
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if not (_la==5):
+                    break
+
+            self.state = 37
             self.match(ATGparserParser.NEWLINE)
         except RecognitionException as re:
             localctx.exception = re

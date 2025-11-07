@@ -13,7 +13,7 @@ program
 
 inputDecl   : ID PI NEWLINE ;
 outputDecl  : ID PO NEWLINE ;
-gateDecl    : ID TYPE ID ID NEWLINE ;   // out type in1 in2
+gateDecl    : output=ID type=TYPE inputs+=ID+ NEWLINE ;   // out type in1 in2
 
 // ---------- LEXER RULES ----------
 PI   : '$... primary input' ;

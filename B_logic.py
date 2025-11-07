@@ -62,8 +62,15 @@ XOR_TABLE = {
     ('X', 0): 'X', ('X', 1): 'X', ('X', (0, 1)): 'X', ('X', (1, 0)): 'X', ('X', 'X'): 'X'
 }
 
+# 1 input gate operation
 
-# Gate Operations
+
+def op_not(rand1: L):
+    return L(NOT_TABLE[rand1.value])
+
+# 2 input Gate Operations
+
+
 def op_or(rand1: L, rand2: L):
     return L(OR_TABLE[(rand1.value, rand2.value)])
 
@@ -80,5 +87,27 @@ def op_nand(rand1: L, rand2: L):
     return (NOT_TABLE[AND_TABLE[(rand1.value, rand2.value)]])
 
 
-def op_not(rand1: L):
-    return L(NOT_TABLE[rand1.value])
+def op_xor(rand1: L, rand2: L):
+    return L(XOR_TABLE[(rand1.value, rand2.value)])
+
+# 3 input Gate Operations
+
+
+def op_3or(rand1: L, rand2: L, rand3: L):
+    return L(OR_TABLE[(rand1.value, rand2.value)])
+
+
+def op_3nor(rand1: L, rand2: L, rand3: L):
+    return (NOT_TABLE[OR_TABLE[(rand1.value, rand2.value)]])
+
+
+def op_3and(rand1: L, rand2: L, rand3: L):
+    return L(AND_TABLE[(rand1.value, rand2.value)])
+
+
+def op_3nand(rand1: L, rand2: L, rand3: L):
+    return (NOT_TABLE[AND_TABLE[(rand1.value, rand2.value)]])
+
+
+def op_3xor(rand1: L, rand2: L, rand3: L):
+    return L(XOR_TABLE[(rand1.value, rand2.value)])
