@@ -2,7 +2,9 @@
 
 from enum import Enum, auto
 from B_logic import *
-class Circuit:
+
+
+class Circuit():
 
     def __init__(self):
         self.Primary_in = []
@@ -10,6 +12,7 @@ class Circuit:
 
         self.gates = {}  # 'key' : 'value'
         self.lines = {}
+        self.fanouts = {}
 
         fault_universe = []
         fault_list = []
@@ -39,9 +42,3 @@ class gate:
         self.type = gtype
         self.gate_line_inputs = g_inputs
         self.gate_line_output = g_output
-
-    
-
-    
-    
-
