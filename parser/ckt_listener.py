@@ -32,8 +32,7 @@ class cktlistener(ATGparserListener):
 
     def exitGateDecl(self, ctx: ATGparserParser.GateDeclContext):
 
-        self.l_circuit.add_gate(('gate_' + len(self.l_circuit.gates) + 1),
-                                # <-------- POSSIBLE ERROR
-                                g_types[ctx.type_.text.upper()].name,
-                                ['line_' + t.getText() for t in ctx.inputs],
-                                ('line_' + ctx.output.getText()))
+        self.l_circuit.add_gate(('gate_' + str(len(self.l_circuit.gates) + 1)),
+                                g_types[ctx.type_.text.upper()],
+                                ['line_' + t.text for t in ctx.inputs],
+                                ('line_' + ctx.output.text))
