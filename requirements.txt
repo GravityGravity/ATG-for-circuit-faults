@@ -1,1 +1,2 @@
-pip install colorama
+colorama
+antlr4-python3-runtime

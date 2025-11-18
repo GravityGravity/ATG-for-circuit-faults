@@ -6,6 +6,7 @@
 from enum import Enum, auto
 from B_logic import *
 import colorama as cl
+
 cl.init(autoreset=True)
 
 
@@ -30,8 +31,9 @@ class Circuit():
             inp_line = self.lines.get(inp)
             if not inp_line:
                 msg = f'ERROR(Circ.py): add_gate() input line does not exist in circuit lines \\{inp} dict EXITING>>>...'
-                print(cl.Fore.RED + '    ' + msg)
-                raise KeyError(msg)
+                print(msg)
+                self.add_line(inp)
+                inp_line = self.lines.get(inp)
 
             if len(inp_line.nxt) > 1:
                 if not inp_line.is_fanout:
@@ -39,13 +41,11 @@ class Circuit():
                 if not inp_line.line_id in self.fanouts:
                     self.fanouts.add(inp_line.line_id)
 
+            inp_line.nxt.add(gid)
+
         if not self.lines.get(g_output):
             temp_line = line(g_output)
             self.lines[g_output] = temp_line
-        else:
-            msg = f'ERROR(Circ.py): add_gate() output already exists \\{g_output} dict EXITING>>>...'
-            print(cl.Fore.RED + '    ' + msg)
-            raise KeyError(msg)
 
         g = gate(gid, gtype, g_inputs, g_output)
         print(
@@ -76,36 +76,39 @@ class Circuit():
         print(f'        {self.circuit_name.upper()}         \n')
 
         # Print Primary Inputs
-        print(f'{cl.Back.YELLOW}    PRIMARY INPUTS')
+        print(f'    {cl.Back.YELLOW}PRIMARY INPUTS')
         for PI in self.Primary_in:
             print(f' {PI} ', end="")
         print('\n')
 
         # Print Primary Outputs
-        print(f'{cl.Back.YELLOW}    PRIMARY OUTPUTS')
+        print(f'    {cl.Back.YELLOW}PRIMARY OUTPUTS')
         for PO in self.Primary_out:
             print(f' {PO} ', end="")
         print('\n')
 
         # Print Lines
-        print(f'{cl.Back.BLUE}    LINES')
+        print(f'    {cl.Back.BLUE}LINES')
         for key, value in self.lines.items():
-            print(f' {key} ->', end="")
+            print(f' {cl.Fore.CYAN}{key} ->', end="")
             for connected in value.nxt:
-                print(f' [ {connected} ', end="")
+                print(f'  {connected} ', end="")
+            if value.is_fanout:
+                print(f'   {cl.Fore.BLACK}{cl.Back.WHITE} FANOUT ', end="")
+
             print('\n')
         print('\n')
 
         # print Gates
-        print(f'{cl.Back.GREEN}    GATES')
+        print(f'    {cl.Back.GREEN}GATES')
         for key, value in self.gates.items():
-            print(f' {key}({value.type.name} ')
+            print(f' {key}({value.type.name})')
 
-            print(f' G_Input: ', end="")
+            print(f' {cl.Fore.GREEN}G_Input: ', end="")
             for Inp in value.gate_line_inputs:
                 print(f' {Inp} ', end="")
 
-            print(f' G_Output: ', end="")
+            print(f' {cl.Fore.MAGENTA}G_Output: ', end="")
             print(f' {value.gate_line_output} ', end="")
             print('\n')
         print('\n')

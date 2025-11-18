@@ -8,6 +8,8 @@ import os
 import colorama as cl
 from Circ import *
 
+from parser_runner import parse_circuit
+
 # Auto reset colored console print
 cl.init(autoreset=True)
 
@@ -42,9 +44,11 @@ def gen_struct():
         return 0
 
     # PARSE HERE
-
+    selected_circuit = parse_circuit(ckt_path, ckt_name)
+    selected_circuit.print_circ()
     print(cl.Fore.GREEN +
           '✓ SUCESSFULLY CREATE DATA STRUCT FOR CIRCUIT:' + ckt_name)
+    comms()
     return 0
 
 # Option 1: Generate fault collapse
@@ -101,24 +105,24 @@ while (True):
     option = input(cl.Fore.YELLOW + 'ATG.py> ' + cl.Style.RESET_ALL)
 
     match option.lower():
-        case '0':
+        case '0' | 'generate' | 'generate data structures':
             gen_struct()
-        case '1':
+        case '1' | 'perform' | 'perform fault collapsing' | 'create fault classes':
             fault_coll()
-        case '2':
+        case '2' | 'display':
             gen_struct()
-        case '3':
+        case '3' | 'simulate':
             sim()
-        case '4':
+        case '4' | 'generate' | 'generate test' | 'generate test (d-algorithm)':
             gen_struct()
         case '5':
             not_imp('5')
         case '6':
             not_imp('6')
-        case '7':
+        case '7' | 'exit':
             print(cl.Back.YELLOW + '    EXITING PROGRAM    ')
             exit(0)
-        case 'help':
+        case 'help' | '8':
             comms()
         case _:
             print(cl.Fore.RED + '   UNKOWNN COMMAND: "' + option + '"')
