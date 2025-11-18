@@ -93,8 +93,8 @@ def comms():
           ' 3: Simulate the circuit\n'
           ' 4: Generate test (D-Algorithm)\n'
           + cl.Fore.WHITE + cl.Style.DIM +
-          ' 5: Generate test (PODEM) --not implemented\n'
-          ' 6: Generate test (Boolean Satifaibility) --not implemented\n' + cl.Style.NORMAL + cl.Fore.BLUE +
+          ' \033[9m5: Generate test (PODEM) --not implemented\n'
+          ' 6: Generate test (Boolean Satifaibility) --not implemented\033[0m\n' + cl.Style.NORMAL + cl.Fore.BLUE +
           ' 7: Exit\n'
           '\'help\': Display console options again')
 

@@ -30,8 +30,8 @@ class Circuit():
 
             inp_line = self.lines.get(inp)
             if not inp_line:
-                msg = f'ERROR(Circ.py): add_gate() input line does not exist in circuit lines \\{inp} dict EXITING>>>...'
-                print(msg)
+                msg = f'        ERROR(Circ.py): add_gate() input line DNE \\{inp} Creating new line...'
+                print(cl.Fore.RED + '    ' + msg)
                 self.add_line(inp)
                 inp_line = self.lines.get(inp)
 
@@ -95,9 +95,11 @@ class Circuit():
                 print(f'  {connected} ', end="")
             if value.is_fanout:
                 print(f'   {cl.Fore.BLACK}{cl.Back.WHITE} FANOUT ', end="")
-
+            if value.line_id in self.Primary_in:
+                print(f'   {cl.Fore.BLUE}{cl.Back.WHITE} P INPUT ', end="")
+            if value.line_id in self.Primary_out:
+                print(f'   {cl.Fore.YELLOW}{cl.Back.WHITE} P OUTPUT ', end="")
             print('\n')
-        print('\n')
 
         # print Gates
         print(f'    {cl.Back.GREEN}GATES')
