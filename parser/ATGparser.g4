@@ -22,7 +22,7 @@ END  : '$ end of circuit description' NEWLINE? ;
 
 TYPE : 'and' | 'nand' | 'or' | 'nor' | 'not' | 'xor' ;
 
-ID       : [a-zA-Z_][a-zA-Z_0-9]* ;
+ID       : [a-zA-Z_0-9]+ ;
 NEWLINE  : [\r\n]+ ;
 WS       : [ \t]+ -> skip ;
 

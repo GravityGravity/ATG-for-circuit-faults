@@ -1,7 +1,7 @@
 # FILE: ckt_listener.py
 
-from ATGparserListener import ATGparserListener
-from ATGparserParser import ATGparserParser
+from parser.ATGparserListener import ATGparserListener
+from parser.ATGparserParser import ATGparserParser
 from Circ import Circuit, g_types
 
 
