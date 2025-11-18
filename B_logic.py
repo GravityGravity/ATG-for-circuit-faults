@@ -110,4 +110,4 @@ def op_3nand(rand1: L, rand2: L, rand3: L):
 
 
 def op_3xor(rand1: L, rand2: L, rand3: L):
-    return L(XOR_TABLE[(rand1.value, rand2.value)])
+    return (L(XOR_TABLE[(rand1.value, rand2.value)]))
