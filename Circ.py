@@ -21,7 +21,7 @@ class Circuit():
         self.lines: dict[str, line] = {}
         self.fanouts: set[str] = set()
 
-        self.fault_universe = []
+        self.fault_universe:dict = {}
         # self.fault_list = [] # Place Holders
         # self.coll_faults = []
 
@@ -32,8 +32,9 @@ class Circuit():
             if not inp_line:
                 msg = f'        ERROR(Circ.py): add_gate() input line DNE \\{inp} Creating new line...'
                 print(cl.Fore.RED + '    ' + msg)
-                self.add_line(inp)
-                inp_line = self.lines.get(inp)
+                inp_line = self.add_line(inp)
+            
+            inp_line.nxt.add(gid)
 
             if len(inp_line.nxt) > 1:
                 if not inp_line.is_fanout:
@@ -41,7 +42,6 @@ class Circuit():
                 if not inp_line.line_id in self.fanouts:
                     self.fanouts.add(inp_line.line_id)
 
-            inp_line.nxt.add(gid)
 
         if not self.lines.get(g_output):
             temp_line = line(g_output)
@@ -63,6 +63,22 @@ class Circuit():
         print(
             f'     {cl.Fore.BLUE}_Created New Line {cl.Fore.WHITE}{l.line_id} ')
         self.lines[lid] = l
+
+        return self.lines[lid]
+
+    def fanout_split(self):
+
+
+        for fanout in self.fanouts:
+            print(fanout)
+            fanout_line = self.lines.get(fanout)
+            src_line_nxt = set()
+            for i, nxt_gate in enumerate(fanout_line.nxt):
+                print(i)
+                newline = self.add_line(fanout + f'.{i}')
+                src_line_nxt.add(fanout + f'.{i}')
+                newline.add_nxt(nxt_gate)
+                fanout_line.nxt = src_line_nxt
 
     def get_line(self, s_lid: str):
         return self.lines.get(s_lid)

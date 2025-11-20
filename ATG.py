@@ -45,6 +45,7 @@ def gen_struct():
 
     # PARSE HERE
     selected_circuit = parse_circuit(ckt_path, ckt_name)
+    selected_circuit.fanout_split()
     selected_circuit.print_circ()
     print(cl.Fore.GREEN +
           '✓ SUCESSFULLY CREATE DATA STRUCT FOR CIRCUIT:' + ckt_name)
