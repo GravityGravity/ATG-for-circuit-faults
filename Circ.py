@@ -22,8 +22,9 @@ class Circuit():
         self.fanouts: set[str] = set()
 
         self.fault_universe: dict = {}
-        # self.fault_list = [] # Place Holders
-        # self.coll_faults = []
+        self.fault_universe_coll: dict = {}
+        fault_classes: list[fault_class] = []
+        line_to_fault_class: dict[str, int] = []
 
     def add_gate(self, gid: str, gtype: g_types, g_inputs: list, g_output: str):
         for inp in g_inputs:
@@ -88,41 +89,73 @@ class Circuit():
     def get_line(self, s_lid: str):
         return self.lines.get(s_lid)
 
-    def get_gate(self, s_gid: str):
-        return self.gates.get(s_gid)
+    def get_gate(self, id: str):
+        if (self.get_line(id)):
+
+            if self.get_line(id).is_fanout:
+                msg = f'ERROR(Circ.py): add_gate() cannot get gate from fanout line \\{id} EXITING>>>...'
+                print(cl.Fore.RED + '    ' + msg)
+                raise KeyError(msg)
+            return self.gates.get(next(iter(self.get_line(id).nxt)))
+        else:
+            return self.gates.get(id)
 
     # Fault Handling
 
     def create_fault_universe(self):
         for inp in self.Primary_in:
-            self.fault_universe[inp] = {'SA0', 'SA1'}
+            self.fault_universe[inp] = {0, 1}
 
         for fanout in self.fanouts:
             fanout_line = self.get_line(fanout)
             if not fanout in self.fault_universe:
-                self.fault_universe[fanout] = {'SA0', 'SA1'}
+                self.fault_universe[fanout] = {0, 1}
             for nxt_line in fanout_line.nxt:
-                self.fault_universe[nxt_line] = {'SA0', 'SA1'}
+                self.fault_universe[nxt_line] = {0, 1}
 
         pass
 
-    def print_fault_U(self):
-        # print Gates
+    def print_fault_U(self):  # Print Faults
         print(
             f'    {cl.Back.RED} FAULT UNIVERSE {cl.Back.RESET}{cl.Fore.RED} (total: {len(self.fault_universe) * 2})')
         for key, value in self.fault_universe.items():
             print(f' {cl.Fore.RED}  {key}', end="")
             for fault in self.fault_universe[key]:
-                print(f' {fault} ', end="")
+                print(f' SA{str(fault)} ', end="")
             print('\n')
         print('==========FINISHED=========')
         pass
 
-        # Circuit Printing
+    def fault_collapse(self):
+
+        rel_gates = set()
+        rel_lines = set()
+        # Grab relevant gates
+        for inp in self.Primary_in:
+            rel_lines.add(inp)
+            if (self.get_line(inp).is_fanout):
+                for l in self.get_line(inp).nxt:
+                    g = self.get_gate(l)
+                    if not g.gate_line_output in rel_lines:
+                        rel_lines.add(g.gate_line_output)
+                    if not g.gate_id in rel_gates:
+                        rel_gates.add(g.gate_id)
+                continue
+            g = self.get_gate(inp)
+            if not g.gate_line_output in rel_lines:
+                rel_lines.add(g.gate_line_output)
+            if not g.gate_id in rel_gates:
+                rel_gates.add(g.gate_id)
+
+        print(rel_lines)
+        print(rel_gates)
+        pass
+
+    # Circuit Printing
 
     def print_circ(self):
-        # Print Circuit Name
         print(f'========================================')
+        # Print Circuit Name
         print(f'        {self.circuit_name.upper()}         \n')
 
         # Print Primary Inputs
@@ -197,3 +230,12 @@ class gate:
     def g_change_input(self, old_line_id, new_line_id):
         indx = self.gate_line_inputs.index(old_line_id)
         self.gate_line_inputs[indx] = new_line_id
+
+
+class fault_class:
+    def __init__(self, lines: set, class_label):
+        self.lines: set = lines
+        class_label: str = class_label  # dominating or equivalence
+
+    def add_line(self, line_id, sa_val):
+        self.lines.add((line_id, sa_val))

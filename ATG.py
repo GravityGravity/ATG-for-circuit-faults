@@ -63,6 +63,7 @@ def fault_coll():
     print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
     selected_circuit.create_fault_universe()
     selected_circuit.print_fault_U()
+    selected_circuit.fault_collapse()
     print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
     return 0
 
