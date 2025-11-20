@@ -11,7 +11,7 @@ cl.init(autoreset=True)
 
 
 class Circuit():
-
+    
     def __init__(self, name: str):
         self.circuit_name: str = name
         self.Primary_in: set[str] = set()
@@ -36,12 +36,13 @@ class Circuit():
             
             inp_line.nxt.add(gid)
 
+            inp_line.nxt.add(gid)
+
             if len(inp_line.nxt) > 1:
                 if not inp_line.is_fanout:
                     inp_line.fan_out_change(True)
                 if not inp_line.line_id in self.fanouts:
                     self.fanouts.add(inp_line.line_id)
-
 
         if not self.lines.get(g_output):
             temp_line = line(g_output)
@@ -67,7 +68,6 @@ class Circuit():
         return self.lines[lid]
 
     def fanout_split(self):
-
 
         for fanout in self.fanouts:
             print(fanout)
@@ -109,7 +109,7 @@ class Circuit():
             print(f' {cl.Fore.CYAN}{key} ->', end="")
             for connected in value.nxt:
                 print(f'  {connected} ', end="")
-            if value.is_fanout:
+            if value.line_id in self.fanouts:
                 print(f'   {cl.Fore.BLACK}{cl.Back.WHITE} FANOUT ', end="")
             if value.line_id in self.Primary_in:
                 print(f'   {cl.Fore.BLUE}{cl.Back.WHITE} P INPUT ', end="")
