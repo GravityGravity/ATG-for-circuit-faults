@@ -11,7 +11,7 @@ cl.init(autoreset=True)
 
 
 class Circuit():
-    
+
     def __init__(self, name: str):
         self.circuit_name: str = name
         self.Primary_in: set[str] = set()
@@ -21,7 +21,7 @@ class Circuit():
         self.lines: dict[str, line] = {}
         self.fanouts: set[str] = set()
 
-        self.fault_universe:dict = {}
+        self.fault_universe: dict = {}
         # self.fault_list = [] # Place Holders
         # self.coll_faults = []
 
@@ -33,8 +33,6 @@ class Circuit():
                 msg = f'        ERROR(Circ.py): add_gate() input line DNE \\{inp} Creating new line...'
                 print(cl.Fore.RED + '    ' + msg)
                 inp_line = self.add_line(inp)
-            
-            inp_line.nxt.add(gid)
 
             inp_line.nxt.add(gid)
 
@@ -75,10 +73,17 @@ class Circuit():
             src_line_nxt = set()
             for i, nxt_gate in enumerate(fanout_line.nxt):
                 print(i)
-                newline = self.add_line(fanout + f'.{i}')
-                src_line_nxt.add(fanout + f'.{i}')
+
+                # New split line nxt set to gate
+                newline = self.add_line(fanout + f'.{i+1}')
                 newline.add_nxt(nxt_gate)
-                fanout_line.nxt = src_line_nxt
+                # Change nxt of src fanout line
+                src_line_nxt.add(fanout + f'.{i+1}')
+                # Change gate input to split line
+                self.get_gate(nxt_gate).g_change_input(
+                    fanout, fanout + f'.{i+1}')
+
+            fanout_line.nxt = src_line_nxt
 
     def get_line(self, s_lid: str):
         return self.lines.get(s_lid)
@@ -86,25 +91,55 @@ class Circuit():
     def get_gate(self, s_gid: str):
         return self.gates.get(s_gid)
 
+    # Fault Handling
+
+    def create_fault_universe(self):
+        for inp in self.Primary_in:
+            self.fault_universe[inp] = {'SA0', 'SA1'}
+
+        for fanout in self.fanouts:
+            fanout_line = self.get_line(fanout)
+            if not fanout in self.fault_universe:
+                self.fault_universe[fanout] = {'SA0', 'SA1'}
+            for nxt_line in fanout_line.nxt:
+                self.fault_universe[nxt_line] = {'SA0', 'SA1'}
+
+        pass
+
+    def print_fault_U(self):
+        # print Gates
+        print(
+            f'    {cl.Back.RED} FAULT UNIVERSE {cl.Back.RESET}{cl.Fore.RED} (total: {len(self.fault_universe) * 2})')
+        for key, value in self.fault_universe.items():
+            print(f' {cl.Fore.RED}  {key}', end="")
+            for fault in self.fault_universe[key]:
+                print(f' {fault} ', end="")
+            print('\n')
+        print('==========FINISHED=========')
+        pass
+
+        # Circuit Printing
+
     def print_circ(self):
         # Print Circuit Name
         print(f'========================================')
         print(f'        {self.circuit_name.upper()}         \n')
 
         # Print Primary Inputs
-        print(f'    {cl.Back.YELLOW}PRIMARY INPUTS')
+        print(f'    {cl.Back.YELLOW} PRIMARY INPUTS ')
         for PI in self.Primary_in:
             print(f' {PI} ', end="")
         print('\n')
 
         # Print Primary Outputs
-        print(f'    {cl.Back.YELLOW}PRIMARY OUTPUTS')
+        print(f'    {cl.Back.YELLOW} PRIMARY OUTPUTS ')
         for PO in self.Primary_out:
             print(f' {PO} ', end="")
         print('\n')
 
         # Print Lines
-        print(f'    {cl.Back.BLUE}LINES')
+        print(
+            f'    {cl.Back.BLUE} LINES {cl.Back.RESET}{cl.Fore.BLUE} (total: {len(self.lines)})')
         for key, value in self.lines.items():
             print(f' {cl.Fore.CYAN}{key} ->', end="")
             for connected in value.nxt:
@@ -118,7 +153,8 @@ class Circuit():
             print('\n')
 
         # print Gates
-        print(f'    {cl.Back.GREEN}GATES')
+        print(
+            f'    {cl.Back.GREEN} GATES {cl.Back.RESET}{cl.Fore.GREEN} (total: {len(self.gates)})')
         for key, value in self.gates.items():
             print(f' {key}({value.type.name})')
 
@@ -157,3 +193,7 @@ class gate:
         self.type = gtype
         self.gate_line_inputs = g_inputs
         self.gate_line_output = g_output
+
+    def g_change_input(self, old_line_id, new_line_id):
+        indx = self.gate_line_inputs.index(old_line_id)
+        self.gate_line_inputs[indx] = new_line_id

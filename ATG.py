@@ -15,6 +15,8 @@ cl.init(autoreset=True)
 
 # Option 0: Generate data struct
 
+selected_circuit: Circuit = None
+
 
 def gen_struct():
     """Option 0 - Generate data structure for circuit
@@ -44,11 +46,11 @@ def gen_struct():
         return 0
 
     # PARSE HERE
+    global selected_circuit
     selected_circuit = parse_circuit(ckt_path, ckt_name)
     selected_circuit.fanout_split()
     selected_circuit.print_circ()
-    print(cl.Fore.GREEN +
-          '✓ SUCESSFULLY CREATE DATA STRUCT FOR CIRCUIT:' + ckt_name)
+    print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED DATA STRUCT FOR CIRCUIT: {selected_circuit.circuit_name}')
     comms()
     return 0
 
@@ -56,9 +58,12 @@ def gen_struct():
 
 
 def fault_coll():
-    """Option 1 - Perform fault collapsing
+    """Option 1 - Perform fault collapsing and fault universe creation
     """
     print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
+    selected_circuit.create_fault_universe()
+    selected_circuit.print_fault_U()
+    print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
     return 0
 
 # Prints console commands
