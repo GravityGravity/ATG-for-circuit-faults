@@ -25,7 +25,7 @@ class g_types(Enum):  # (controlling value, inversion signal)
     NOT = (L.X, 1)
     NAND = (0, 1)
     NOR = (1, 1)
-    XOR = 'idk'  # fix this
+    XOR = (L.X, L.X)
 
 
 #  Contains all truth table logic for circuit gates
@@ -111,3 +111,15 @@ def op_3nand(rand1: L, rand2: L, rand3: L):
 
 def op_3xor(rand1: L, rand2: L, rand3: L):
     return (L(XOR_TABLE[(rand1.value, rand2.value)]))
+
+
+def int_inverse(var):
+    if (var == L.X):
+        return L.X
+    if (var == 1):
+        return 0
+    if (var == 0):
+        return 1
+    else:
+        print(f'    ERROR(B_logic.py) int_inverse(), did not pass in an int with 1 or 0')
+        return None

@@ -18,6 +18,79 @@ import colorama as cl
 cl.init(autoreset=True)
 
 
+class gate:
+    """
+    Represents a logic gate in the circuit.
+
+    Attributes:
+        gate_id:           Unique gate identifier.
+        type:              Gate type (from g_types enum).
+        gate_line_inputs:  List of input line IDs.
+        gate_line_output:  Output line ID.
+    """
+
+    def __init__(self, gid: str, gtype: g_types, g_inputs: list[str], g_output: str):
+        """
+        Initialize a gate.
+
+        Args:
+            gid:      Gate identifier.
+            gtype:    Gate type (from g_types).
+            g_inputs: List of input line IDs.
+            g_output: Output line ID.
+        """
+        self.gate_id = gid
+        self.type = gtype
+        self.gate_line_inputs = g_inputs
+        self.gate_line_output = g_output
+
+    def g_change_input(self, old_line_id: str, new_line_id: str):
+        """
+        Replace one of the gate's input line IDs with a new one.
+
+        Used during fanout splitting to rewire gate inputs from stem to branch.
+
+        Args:
+            old_line_id: Existing input line ID to be replaced.
+            new_line_id: New input line ID to substitute.
+        """
+        indx = self.gate_line_inputs.index(old_line_id)
+        self.gate_line_inputs[indx] = new_line_id
+
+
+class fault_class:
+    """
+    Represents a class (group) of related faults, such as:
+      - structurally equivalent faults
+      - faults in a dominance relationship (with one designated representative)
+
+    For now, this class simply stores a set of (line_id, sa_val) tuples and a label
+    describing the nature of the class.
+    """
+
+    def __init__(self, class_label: str, dominated: str = None):
+        """
+        Initialize a fault_class.
+
+        Args:
+            lines:       Set of (line_id, sa_val) tuples belonging to this class.
+            class_label: Description string (e.g., 'equivalence', 'dominance').
+        """
+        self.lines: set[tuple[str, int]] = set()
+        self.class_label: str = class_label
+        self.dominated = dominated
+
+    def add_line(self, line_id: str, sa_val: int):
+        """
+        Add a new (line_id, sa_val) fault to this class.
+
+        Args:
+            line_id: Line identifier.
+            sa_val:  Stuck-at value (0 or 1).
+        """
+        self.lines.add((line_id, sa_val))
+
+
 class Circuit:
     """
     Represents a combinational circuit with:
@@ -198,12 +271,6 @@ class Circuit:
         """
         Retrieve a gate object.
 
-        Behavior:
-          - If 'id' is a line ID:
-              * If that line is a fanout stem, raising an error (ambiguous).
-              * If not a fanout, look up the gate driven by that line.
-          - If 'id' is a gate ID, return the gate directly.
-
         Args:
             id: Either a gate ID or a line ID.
 
@@ -284,7 +351,20 @@ class Circuit:
             print(f' {cl.Fore.RED}  {line_id}', end="")
             for fault in sa_set:
                 print(f' SA{str(fault)} ', end="")
-            print('\n')
+            print('\n', end="")
+
+        print(
+            f'    {cl.Back.RED} FAULT CLASSES {cl.Back.RESET}'
+            f'{cl.Fore.RED} (total: {len(self.fault_classes)})'
+        )
+        for fc in self.fault_classes:
+            print(f' {cl.Fore.RED}  {fc.class_label}')
+            for l in fc.lines:
+                print(f' {l} ', end="")
+                if fc.dominated == l[0]:
+                    print(f'   {cl.Back.WHITE} DOMINATED ', end="")
+                print('\n', end="")
+            print('\n', end="")
 
         print('==========FINISHED=========')
 
@@ -329,6 +409,46 @@ class Circuit:
         print(rel_lines)
         print(rel_gates)
 
+        for rg in rel_gates:
+            g = self.get_gate(rg)
+            self.fault_check(g)
+
+    def fault_check(self, g: gate):
+        if g.type is g_types.XOR:
+            return None
+
+        C = g.type.value[0]
+        i = g.type.value[1]
+
+        # Equivalence Classes
+        fc = fault_class('equivalence')
+        if i:
+            fc.add_line(g.gate_line_output, int_inverse(C))
+        else:
+            fc.add_line(g.gate_line_output, C)
+        for g_inp in g.gate_line_inputs:
+            # self.line_to_fault_class[g_inp]
+            f = (g_inp, C)
+            fc.add_line(*f)
+
+        self.fault_classes.append(fc)
+
+        # Dominance Clasess
+        fc = fault_class('dominance')
+        if i:
+            fc.dominated = g.gate_line_output
+            fc.add_line(g.gate_line_output, C)
+        else:
+            fc.add_line(g.gate_line_output, int_inverse(C))
+
+            fc.dominated = g.gate_line_output
+        for g_inp in g.gate_line_inputs:
+            # self.line_to_fault_class[g_inp]
+            f = (g_inp, int_inverse(C))
+            fc.add_line(*f)
+        self.fault_classes.append(fc)
+        pass
+
     # -------------------------------------------------------------------------
     # Circuit printing / debugging
     # -------------------------------------------------------------------------
@@ -352,7 +472,8 @@ class Circuit:
         print(f'    {cl.Back.YELLOW} PRIMARY OUTPUTS ')
         for PO in self.Primary_out:
             print(f' {PO} ', end="")
-        print('\n')
+        print('\n', end="")
+        print('\n', end="")
 
         # Lines
         print(
@@ -371,7 +492,8 @@ class Circuit:
                 print(f'   {cl.Fore.BLUE}{cl.Back.WHITE} P INPUT ', end="")
             if value.line_id in self.Primary_out:
                 print(f'   {cl.Fore.YELLOW}{cl.Back.WHITE} P OUTPUT ', end="")
-            print('\n')
+            print('\n', end="")
+        print('\n', end="")
 
         # Gates
         print(
@@ -388,7 +510,6 @@ class Circuit:
             print(f' {cl.Fore.MAGENTA}G_Output: ', end="")
             print(f' {value.gate_line_output} ', end="")
             print('\n')
-        print('\n')
 
         print('==========FINISHED=========')
 
@@ -433,75 +554,3 @@ class line:
             item_id: ID of the driven object (typically a gate ID or branch line ID).
         """
         self.nxt.add(item_id)
-
-
-class gate:
-    """
-    Represents a logic gate in the circuit.
-
-    Attributes:
-        gate_id:           Unique gate identifier.
-        type:              Gate type (from g_types enum).
-        gate_line_inputs:  List of input line IDs.
-        gate_line_output:  Output line ID.
-    """
-
-    def __init__(self, gid: str, gtype: g_types, g_inputs: list[str], g_output: str):
-        """
-        Initialize a gate.
-
-        Args:
-            gid:      Gate identifier.
-            gtype:    Gate type (from g_types).
-            g_inputs: List of input line IDs.
-            g_output: Output line ID.
-        """
-        self.gate_id = gid
-        self.type = gtype
-        self.gate_line_inputs = g_inputs
-        self.gate_line_output = g_output
-
-    def g_change_input(self, old_line_id: str, new_line_id: str):
-        """
-        Replace one of the gate's input line IDs with a new one.
-
-        Used during fanout splitting to rewire gate inputs from stem to branch.
-
-        Args:
-            old_line_id: Existing input line ID to be replaced.
-            new_line_id: New input line ID to substitute.
-        """
-        indx = self.gate_line_inputs.index(old_line_id)
-        self.gate_line_inputs[indx] = new_line_id
-
-
-class fault_class:
-    """
-    Represents a class (group) of related faults, such as:
-      - structurally equivalent faults
-      - faults in a dominance relationship (with one designated representative)
-
-    For now, this class simply stores a set of (line_id, sa_val) tuples and a label
-    describing the nature of the class.
-    """
-
-    def __init__(self, lines: set[tuple[str, int]], class_label: str):
-        """
-        Initialize a fault_class.
-
-        Args:
-            lines:       Set of (line_id, sa_val) tuples belonging to this class.
-            class_label: Description string (e.g., 'equivalence', 'dominance').
-        """
-        self.lines: set[tuple[str, int]] = lines
-        self.class_label: str = class_label
-
-    def add_line(self, line_id: str, sa_val: int):
-        """
-        Add a new (line_id, sa_val) fault to this class.
-
-        Args:
-            line_id: Line identifier.
-            sa_val:  Stuck-at value (0 or 1).
-        """
-        self.lines.add((line_id, sa_val))

@@ -3,6 +3,8 @@
 # Description:
 #   Automatic Test Generation file
 
+# RUN THIS FILE FOR EVERYTHING
+
 import sys
 import os
 import colorama as cl
@@ -16,6 +18,16 @@ cl.init(autoreset=True)
 # Option 0: Generate data struct
 
 selected_circuit: Circuit = None
+
+
+def circuit_check():
+    global selected_circuit
+    if selected_circuit:
+        return False
+    else:
+        print(
+            f'{cl.Fore.RED}     ERROR: Circuit wasn\'t loaded, initialize circuit ->{cl.Fore.BLUE} option 0\n')
+        return True
 
 
 def gen_struct():
@@ -61,39 +73,71 @@ def fault_coll():
     """Option 1 - Perform fault collapsing and fault universe creation
     """
     print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
+    if circuit_check():
+        return None
     selected_circuit.create_fault_universe()
-    selected_circuit.print_fault_U()
     selected_circuit.fault_collapse()
     print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
-    return 0
+    return 1
 
-# Prints console commands
 
-# Simulate cir
+def fc_display():
+    """Option 2: - Display Fault Classes
+    """
+    print(cl.Fore.CYAN + 'DEBUG:   fc_display()')  # debug
+    if circuit_check():
+        return None
+    if not selected_circuit.fault_classes:
+        print(
+            f'{cl.Fore.RED}     ERROR: Fault classes empty , Create fault classes with ->{cl.Fore.BLUE} option 1\n')
+        return None
+
+    selected_circuit.print_fault_U()
+
+    return 1
 
 
 def sim():
     """Option 3: - Simulate Circuit
     """
     print(cl.Fore.CYAN + 'DEBUG:   sim()')  # debug
-    return 0
+    if circuit_check():
+        return None
+    return 1
 
 
 def Dalgo():
-    return 0
+    print(cl.Fore.CYAN + 'DEBUG:   Dalgo()')  # debug
+    if circuit_check():
+        return None
+    if not selected_circuit.fault_classes:
+        print(
+            f'{cl.Fore.RED}     ERROR: Circuit cannot perform D-ALGO without fault collapse.\n               Please collapse faults with ->{cl.Fore.BLUE} option 1\n')
+    # ================================================================================================================
+    # ================================================================================================================
+    # ================================================================================================================
+    # ================================================================================================================
+    # STARMAN IMPLEMENT YOUR D-ALGO INTO THE D-ALGO.py FILE AND CALL IT HERE <------------------------------------------------------------------------------------
+    # ================================================================================================================
+    # ================================================================================================================
+    # ================================================================================================================
+    # ===============================================================================================================================
+    return 1
 
 
 def not_imp(option_num):
+    print(cl.Fore.CYAN + 'DEBUG:   not_imp()')  # debug
     """Option 5 and 6: Test generation algorithms not implemented
     """
-    print(cl.Fore.CYAN + 'DEBUG:   not_imp()')  # debug
-    return 0
+    print(
+        f'{cl.Fore.RED}     ERROR: Selected {cl.Fore.BLUE} \'option {option_num}\' {cl.Fore.RED} not available.\n')
+    return 1
 
 
 def comms():
     """ Option 'help' - Prints console commands
     """
-    print(cl.Fore.BLUE + 'Enter an option:\n'
+    print('\n' + cl.Fore.BLUE + 'Enter an option:\n'
           ' 0: generate data structures\n'
           ' 1: perform fault collapsing and create fault classes\n'
           ' 2: Display found fault classes\n'
@@ -117,11 +161,11 @@ while (True):
         case '1' | 'perform' | 'perform fault collapsing' | 'create fault classes':
             fault_coll()
         case '2' | 'display':
-            gen_struct()
+            fc_display()
         case '3' | 'simulate':
             sim()
         case '4' | 'generate' | 'generate test' | 'generate test (d-algorithm)':
-            gen_struct()
+            Dalgo()
         case '5':
             not_imp('5')
         case '6':
