@@ -1,4 +1,4 @@
-# File: D_algo
+# File: Sim.py
 # Implemented by: St4rmanxz
 
 import os
@@ -11,6 +11,6 @@ from Circ import *
 from B_logic import *
 
 
-def d_algorithm():
+def sim():
 
     return 0

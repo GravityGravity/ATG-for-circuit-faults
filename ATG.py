@@ -15,8 +15,6 @@ from parser_runner import parse_circuit
 # Auto reset colored console print
 cl.init(autoreset=True)
 
-# Option 0: Generate data struct
-
 selected_circuit: Circuit = None
 
 
@@ -65,8 +63,6 @@ def gen_struct():
     print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED DATA STRUCT FOR CIRCUIT: {selected_circuit.circuit_name}')
     comms()
     return 0
-
-# Option 1: Generate fault collapse
 
 
 def fault_coll():
@@ -158,13 +154,13 @@ while (True):
     match option.lower():
         case '0' | 'generate' | 'generate data structures':
             gen_struct()
-        case '1' | 'perform' | 'perform fault collapsing' | 'create fault classes':
+        case '1' | 'perform' | 'perform fault collapsing' | 'create fault classes' | 'faults':
             fault_coll()
-        case '2' | 'display':
+        case '2' | 'display' | 'fault display':
             fc_display()
         case '3' | 'simulate':
             sim()
-        case '4' | 'generate' | 'generate test' | 'generate test (d-algorithm)':
+        case '4' | 'generate' | 'generate test' | 'generate test (d-algorithm)' | 'd algo' | 'd-algo':
             Dalgo()
         case '5':
             not_imp('5')
