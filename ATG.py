@@ -8,7 +8,7 @@
 import sys
 import os
 import colorama as cl
-from Circ import *
+from Circ import Circuit
 
 from parser_runner import parse_circuit
 
@@ -83,12 +83,12 @@ def fc_display():
     print(cl.Fore.CYAN + 'DEBUG:   fc_display()')  # debug
     if circuit_check():
         return None
-    if not selected_circuit.fault_classes:
+    if not selected_circuit.faults:
         print(
             f'{cl.Fore.RED}     ERROR: Fault classes empty , Create fault classes with ->{cl.Fore.BLUE} option 1\n')
         return None
 
-    selected_circuit.print_fault_U()
+    selected_circuit.faults.print_universe()
 
     return 1
 

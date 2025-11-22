@@ -14,6 +14,7 @@
 from enum import Enum, auto
 from B_logic import *
 import colorama as cl
+from faults import FaultEngine
 
 cl.init(autoreset=True)
 
@@ -58,37 +59,46 @@ class gate:
         self.gate_line_inputs[indx] = new_line_id
 
 
-class fault_class:
+class line:
     """
-    Represents a class (group) of related faults, such as:
-      - structurally equivalent faults
-      - faults in a dominance relationship (with one designated representative)
+    Represents a single signal line (net) in the circuit.
 
-    For now, this class simply stores a set of (line_id, sa_val) tuples and a label
-    describing the nature of the class.
+    Attributes:
+        line_id:   Line identifier (string).
+        values:    Placeholder for logic values over time (if needed).
+        nxt:       Set of IDs that this line drives (gate IDs or branch line IDs).
+        is_fanout: True if this line is a fanout stem (drives > 1 destination).
     """
 
-    def __init__(self, class_label: str, dominated: str = None):
+    def __init__(self, lid: str):
         """
-        Initialize a fault_class.
+        Initialize a line with the given ID.
 
         Args:
-            lines:       Set of (line_id, sa_val) tuples belonging to this class.
-            class_label: Description string (e.g., 'equivalence', 'dominance').
+            lid: Line identifier.
         """
-        self.lines: set[tuple[str, int]] = set()
-        self.class_label: str = class_label
-        self.dominated = dominated
+        self.line_id: str = lid
+        self.values: list = []
+        self.nxt: set[str] = set()
+        self.is_fanout: bool = False
 
-    def add_line(self, line_id: str, sa_val: int):
+    def fan_out_change(self, fan_out: bool):
         """
-        Add a new (line_id, sa_val) fault to this class.
+        Mark this line as a fanout stem or not.
 
         Args:
-            line_id: Line identifier.
-            sa_val:  Stuck-at value (0 or 1).
+            fan_out: True to mark as fanout stem, False otherwise.
         """
-        self.lines.add((line_id, sa_val))
+        self.is_fanout = fan_out
+
+    def add_nxt(self, item_id: str):
+        """
+        Add a destination driven by this line.
+
+        Args:
+            item_id: ID of the driven object (typically a gate ID or branch line ID).
+        """
+        self.nxt.add(item_id)
 
 
 class Circuit:
@@ -117,25 +127,9 @@ class Circuit:
 
         # Line ID -> line object
         self.lines: dict[str, line] = {}
-
         # Set of line IDs that are fanout stems (i.e., drive multiple destinations).
         self.fanouts: set[str] = set()
-
-        # Fault universe:
-        #   key   = line_id
-        #   value = set of stuck-at values present on that line (subset of {0, 1})
-        self.fault_universe: dict[str, set[int]] = {}
-
-        # Collapsed fault universe (after applying equivalence / dominance).
-        # Same structure as fault_universe.
-        self.fault_universe_coll: dict[str, set[int]] = {}
-
-        # List of fault_class objects (each representing one equivalence/dominance class).
-        self.fault_classes: list[fault_class] = []
-
-        # Mapping from line ID to fault class index (into self.fault_classes).
-        # This lets you quickly find which class a line's faults belong to.
-        self.line_to_fault_class: dict[str, int] = {}
+        self.faults: FaultEngine = None
 
     # -------------------------------------------------------------------------
     # Circuit construction
@@ -220,6 +214,54 @@ class Circuit:
 
         return self.lines[lid]
 
+    def get_line(self, s_lid: str):
+        """
+        Retrieve a line object by its ID.
+
+        Args:
+            s_lid: Line identifier.
+
+        Returns:
+            line object if it exists; otherwise None.
+        """
+        return self.lines.get(s_lid)
+
+    def get_gate(self, id: str) -> "gate | None":
+        """
+        Retrieve a gate object.
+
+        Args:
+            id: Either a gate ID or a line ID.
+
+        Returns:
+            gate object if found; otherwise None.
+
+        Raises:
+            KeyError: If attempting to resolve a fanout stem line to a single gate.
+        """
+        # First treat 'id' as a line ID.
+        line_obj: line = self.get_line(id)
+        if line_obj:
+            # If this is a fanout stem, there is no single gate associated with it.
+            if line_obj.is_fanout:
+                msg = (
+                    f'ERROR(Circ.py): get_gate() cannot get gate from fanout line '
+                    f'\\{id}. EXITING...'
+                )
+                print(cl.Fore.RED + '    ' + msg)
+                raise KeyError(msg)
+
+                # Otherwise, the line should drive exactly one gate; pick that gate ID.
+
+            if not line_obj.nxt:
+                # Optional: fall back to "producer" search, or just return None.
+                return None
+
+            return self.gates.get(next(iter(line_obj.nxt)))
+
+        # Not a line ID; treat it as a gate ID.
+        return self.gates.get(id)
+
     def fanout_split(self):
         """
         Split each fanout stem line into distinct branch lines.
@@ -255,199 +297,19 @@ class Circuit:
             # Replace fanout_line.nxt with the set of new branch line IDs.
             fanout_line.nxt = src_line_nxt
 
-    def get_line(self, s_lid: str) -> "line | None":
-        """
-        Retrieve a line object by its ID.
-
-        Args:
-            s_lid: Line identifier.
-
-        Returns:
-            line object if it exists; otherwise None.
-        """
-        return self.lines.get(s_lid)
-
-    def get_gate(self, id: str) -> "gate | None":
-        """
-        Retrieve a gate object.
-
-        Args:
-            id: Either a gate ID or a line ID.
-
-        Returns:
-            gate object if found; otherwise None.
-
-        Raises:
-            KeyError: If attempting to resolve a fanout stem line to a single gate.
-        """
-        # First treat 'id' as a line ID.
-        line_obj = self.get_line(id)
-        if line_obj:
-            # If this is a fanout stem, there is no single gate associated with it.
-            if line_obj.is_fanout:
-                msg = (
-                    f'ERROR(Circ.py): get_gate() cannot get gate from fanout line '
-                    f'\\{id}. EXITING...'
-                )
-                print(cl.Fore.RED + '    ' + msg)
-                raise KeyError(msg)
-
-            # Otherwise, the line should drive exactly one gate; pick that gate ID.
-            return self.gates.get(next(iter(line_obj.nxt)))
-        else:
-            # Not a line ID; treat it as a gate ID.
-            return self.gates.get(id)
-
     # -------------------------------------------------------------------------
-    # Fault handling
+    # Fault Handling
     # -------------------------------------------------------------------------
 
-    def create_fault_universe(self):
-        """
-        Build the initial (un-collapsed) single stuck-at fault universe.
+    def create_fault_universe(self) -> None:
+        self.faults = FaultEngine(self)
+        self.faults.create_universe()
 
-        For now the policy is:
-          - Every primary input line gets {SA0, SA1}.
-          - Every fanout stem line gets {SA0, SA1}.
-          - Every fanout branch (line in fanout_line.nxt) gets {SA0, SA1}.
+    def fault_collapse(self) -> None:
+        self.faults.collapse()
 
-        Note:
-            This is a structural approximation and may be refined later with
-            equivalence/dominance collapsing rules.
-        """
-        # Assign SA0/SA1 faults to all primary inputs.
-        for inp in self.Primary_in:
-            self.fault_universe[inp] = {0, 1}
-
-        # For each fanout stem, assign faults to the stem and its branches.
-        for fanout in self.fanouts:
-            fanout_line = self.get_line(fanout)
-            if fanout not in self.fault_universe:
-                self.fault_universe[fanout] = {0, 1}
-
-            # NOTE: Here fanout_line.nxt currently holds IDs of gates or split lines,
-            # depending on when fanout_split() is called. You may refine this logic
-            # later once your fault model is fully defined.
-            for nxt_line in fanout_line.nxt:
-                self.fault_universe[nxt_line] = {0, 1}
-
-    def print_fault_U(self):
-        """
-        Pretty-print the current fault universe.
-
-        Format:
-            <line_id> SA0 SA1 ...
-
-        The total count is approximated as (#lines_in_fault_universe * 2),
-        assuming each line may have two faults.
-        """
-        total_faults_est = len(self.fault_universe) * 2
-        print(
-            f'    {cl.Back.RED} FAULT UNIVERSE {cl.Back.RESET}'
-            f'{cl.Fore.RED} (total: {total_faults_est})'
-        )
-
-        for line_id, sa_set in self.fault_universe.items():
-            print(f' {cl.Fore.RED}  {line_id}', end="")
-            for fault in sa_set:
-                print(f' SA{str(fault)} ', end="")
-            print('\n', end="")
-
-        print(
-            f'    {cl.Back.RED} FAULT CLASSES {cl.Back.RESET}'
-            f'{cl.Fore.RED} (total: {len(self.fault_classes)})'
-        )
-        for fc in self.fault_classes:
-            print(f' {cl.Fore.RED}  {fc.class_label}')
-            for l in fc.lines:
-                print(f' {l} ', end="")
-                if fc.dominated == l[0]:
-                    print(f'   {cl.Back.WHITE} DOMINATED ', end="")
-                print('\n', end="")
-            print('\n', end="")
-
-        print('==========FINISHED=========')
-
-    def fault_collapse(self):
-        """
-        Placeholder for fault collapsing logic.
-
-        The goal of this method is to:
-          - Apply structural equivalence and dominance rules.
-          - Reduce self.fault_universe into a smaller self.fault_universe_coll.
-          - Potentially populate fault_classes and line_to_fault_class.
-
-        Current behavior:
-          - Collect 'relevant' lines and gates reachable from primary inputs.
-          - Print the sets for debugging.
-        """
-        rel_gates: set[str] = set()
-        rel_lines: set[str] = set()
-
-        # For each primary input, traverse one level forward into gates/lines.
-        for inp in self.Primary_in:
-            rel_lines.add(inp)
-
-            # If the PI is a fanout stem, walk all its fanout destinations.
-            if self.get_line(inp).is_fanout:
-                for l in self.get_line(inp).nxt:
-                    g = self.get_gate(l)
-                    if g.gate_line_output not in rel_lines:
-                        rel_lines.add(g.gate_line_output)
-                    if g.gate_id not in rel_gates:
-                        rel_gates.add(g.gate_id)
-                continue
-
-            # Non-fanout PI: get the (single) gate it drives.
-            g = self.get_gate(inp)
-            if g.gate_line_output not in rel_lines:
-                rel_lines.add(g.gate_line_output)
-            if g.gate_id not in rel_gates:
-                rel_gates.add(g.gate_id)
-
-        # Debug output for now. Later, use rel_gates/rel_lines to drive collapsing.
-        print(rel_lines)
-        print(rel_gates)
-
-        for rg in rel_gates:
-            g = self.get_gate(rg)
-            self.fault_check(g)
-
-    def fault_check(self, g: gate):
-        if g.type is g_types.XOR:
-            return None
-
-        C = g.type.value[0]
-        i = g.type.value[1]
-
-        # Equivalence Classes
-        fc = fault_class('equivalence')
-        if i:
-            fc.add_line(g.gate_line_output, int_inverse(C))
-        else:
-            fc.add_line(g.gate_line_output, C)
-        for g_inp in g.gate_line_inputs:
-            # self.line_to_fault_class[g_inp]
-            f = (g_inp, C)
-            fc.add_line(*f)
-
-        self.fault_classes.append(fc)
-
-        # Dominance Clasess
-        fc = fault_class('dominance')
-        if i:
-            fc.dominated = g.gate_line_output
-            fc.add_line(g.gate_line_output, C)
-        else:
-            fc.add_line(g.gate_line_output, int_inverse(C))
-
-            fc.dominated = g.gate_line_output
-        for g_inp in g.gate_line_inputs:
-            # self.line_to_fault_class[g_inp]
-            f = (g_inp, int_inverse(C))
-            fc.add_line(*f)
-        self.fault_classes.append(fc)
-        pass
+    def print_fault_U(self) -> None:
+        self.faults.print_universe()
 
     # -------------------------------------------------------------------------
     # Circuit printing / debugging
@@ -512,45 +374,3 @@ class Circuit:
             print('\n')
 
         print('==========FINISHED=========')
-
-
-class line:
-    """
-    Represents a single signal line (net) in the circuit.
-
-    Attributes:
-        line_id:   Line identifier (string).
-        values:    Placeholder for logic values over time (if needed).
-        nxt:       Set of IDs that this line drives (gate IDs or branch line IDs).
-        is_fanout: True if this line is a fanout stem (drives > 1 destination).
-    """
-
-    def __init__(self, lid: str):
-        """
-        Initialize a line with the given ID.
-
-        Args:
-            lid: Line identifier.
-        """
-        self.line_id: str = lid
-        self.values: list = []
-        self.nxt: set[str] = set()
-        self.is_fanout: bool = False
-
-    def fan_out_change(self, fan_out: bool):
-        """
-        Mark this line as a fanout stem or not.
-
-        Args:
-            fan_out: True to mark as fanout stem, False otherwise.
-        """
-        self.is_fanout = fan_out
-
-    def add_nxt(self, item_id: str):
-        """
-        Add a destination driven by this line.
-
-        Args:
-            item_id: ID of the driven object (typically a gate ID or branch line ID).
-        """
-        self.nxt.add(item_id)
