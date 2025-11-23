@@ -8,6 +8,7 @@
 import sys
 import os
 import colorama as cl
+import Sim
 from Circ import Circuit
 
 from parser_runner import parse_circuit
@@ -99,6 +100,11 @@ def sim():
     print(cl.Fore.CYAN + 'DEBUG:   sim()')  # debug
     if circuit_check():
         return None
+    
+    circSim = Sim()
+    circSim.promptForParameters()
+    circSim.Run()
+    
     return 1
 
 
