@@ -3,23 +3,23 @@
 
 import os
 import sys
-import ATG
 
 # Contains circuit structure
-import Circ
+from Circ import Circuit
 
 # Contains logic tables for gates (Includes D and Not D values)
 from B_logic import *
 
 
-class Sim:
+class Simulation:
 
-    circuit = ATG.selected_circuit
+    testVector = ""
+    circuit = Circuit("undefined")
 
     def __init__(self, testVector="000", circuit=None):
         self.testVector = testVector
-        if circuit is None:
-            circuit = ATG.selected_circuit
+        self.circuit = circuit
+
 
     def promptForParameters(self):
         print("Simulation Parameters:")
@@ -29,7 +29,6 @@ class Sim:
     
 
     def Run(self):
-        self.circuit = ATG.selected_circuit
         self.simulate_circuit()
         finalOutput = ""
         for i in self.circuit.outPut:
