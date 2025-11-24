@@ -4,7 +4,7 @@
        width="1600">
 </p>
 
-# 🔌📐
+## 🔌📐
 
 <p align="center">
   <b>Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults</b><br>
