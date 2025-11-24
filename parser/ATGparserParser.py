@@ -1,4 +1,4 @@
-# Generated from parser/ATGparser.g4 by ANTLR 4.13.2
+# Generated from ./parser/ATGparser.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -35,7 +35,7 @@ class ATGparserParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'$... primary input'", "'$... primary output'" ]
+    literalNames = [  ]
 
     symbolicNames = [ "<INVALID>", "PI", "PO", "END", "TYPE", "ID", "NEWLINE", 
                       "WS", "COMMENT", "ERROR" ]
@@ -117,6 +117,12 @@ class ATGparserParser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitProgram" ):
                 listener.exitProgram(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitProgram" ):
+                return visitor.visitProgram(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -206,6 +212,12 @@ class ATGparserParser ( Parser ):
             if hasattr( listener, "exitInputDecl" ):
                 listener.exitInputDecl(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitInputDecl" ):
+                return visitor.visitInputDecl(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -256,6 +268,12 @@ class ATGparserParser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitOutputDecl" ):
                 listener.exitOutputDecl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitOutputDecl" ):
+                return visitor.visitOutputDecl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -314,6 +332,12 @@ class ATGparserParser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitGateDecl" ):
                 listener.exitGateDecl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitGateDecl" ):
+                return visitor.visitGateDecl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 

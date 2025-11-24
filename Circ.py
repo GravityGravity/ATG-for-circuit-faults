@@ -81,6 +81,7 @@ class line:
         self.values: list = []
         self.nxt: set[str] = set()
         self.is_fanout: bool = False
+        self.is_split: bool = False
 
     def fan_out_change(self, fan_out: bool):
         """
@@ -90,6 +91,13 @@ class line:
             fan_out: True to mark as fanout stem, False otherwise.
         """
         self.is_fanout = fan_out
+
+    def split_change(self, split: bool):
+        """
+        Mark this line as a fanout branch or not.
+
+        """
+        self.is_split = split
 
     def add_nxt(self, item_id: str):
         """
@@ -275,18 +283,19 @@ class Circuit:
         are modeled as separate lines.
         """
         for fanout in self.fanouts:
-            print(fanout)
+            print(fanout)  # Debug
             fanout_line = self.lines.get(fanout)
             src_line_nxt = set()
 
             # For each destination gate, create a split line and rewire.
             for i, nxt_gate in enumerate(fanout_line.nxt):
-                print(i)
+                print(i)  # Debug
 
                 # Create new split line (e.g., "g.1", "g.2", ...).
                 split_line_id = fanout + f'.{i + 1}'
                 newline = self.add_line(split_line_id)
                 newline.add_nxt(nxt_gate)
+                newline.split_change(True)
 
                 # Track the new branch line as the fanout's logical children.
                 src_line_nxt.add(split_line_id)

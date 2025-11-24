@@ -28,7 +28,6 @@ public class ATGparserParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'$... primary input'", "'$... primary output'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();

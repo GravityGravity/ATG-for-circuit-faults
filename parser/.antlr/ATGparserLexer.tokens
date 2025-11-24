@@ -7,5 +7,3 @@ NEWLINE=6
 WS=7
 COMMENT=8
 ERROR=9
-'$... primary input'=1
-'$... primary output'=2

@@ -11,7 +11,7 @@ def parse_circuit(file_path: str, circuit_name: str = "circuit_default_name"):
     """
 
     # Load the file into ANTLR
-    input_stream = FileStream(file_path, encoding="utf-8")
+    input_stream = FileStream(file_path, encoding="cp1252")
 
     # Create lexer → token stream
     lexer = ATGparserLexer(input_stream)
