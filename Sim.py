@@ -5,7 +5,7 @@ import os
 import sys
 
 # Contains circuit structure
-from Circ import Circuit
+from Circ import Circuit, gate, line
 
 # Contains logic tables for gates (Includes D and Not D values)
 from B_logic import *
@@ -16,49 +16,51 @@ class Simulation:
     testVector = ""
     circuit = Circuit("undefined")
 
-    def __init__(self, testVector="000", circuit=None):
+    def __init__(self, testVector="000", circuit: Circuit = None):
         self.testVector = testVector
         self.circuit = circuit
-
 
     def promptForParameters(self):
         print("Simulation Parameters:")
         print("PLEASE INPUT TEST VECTOR:")
         testVector = input()
         return testVector
-    
 
     def Run(self):
         self.simulate_circuit()
         finalOutput = ""
-        for i in self.circuit.outPut:
+        for i in self.circuit.Primary_out:
             finalOutput = finalOutput + str(self.circuit.ioList[str(i)])
         print("Output : " + finalOutput)
 
-
     def simulate_circuit(self):
-        evaluate_gates = []
+        evaluate_gates: list = []
         while self.circuit.gates:
-            self.find_ready_gates(evaluate_gates)
-            self.evaluate_ready_gates(evaluate_gates)
-    
+            # <--- added type hints
+            self.find_ready_gates(evaluate_gates: list)
+            self.evaluate_ready_gates(evaluate_gates: list)
+
     def find_ready_gates(self, evaluate_gates):
-        for gate in self.circuit.gates:
+        for g_name, g in self.circuit.gates.items():
             ready = True
-            for inp in gate.inputs:
+            for inp in g.gate_line_inputs:
                 if self.circuit.ioList[inp] == -1:
                     ready = False
                     break
             if ready:
+                # <------ Cant use exact name 'gate' as gate is a class type
                 evaluate_gates.append(gate)
+                # <------ Cant use exact name 'gate' as gate is a class type
                 self.circuit.gates.remove(gate)
-    
+
     def evaluate_ready_gates(self, evaluate_gates):
         for gate in evaluate_gates:
             if gate.gate_type == "INV":
-                self.circuit.ioList[gate.output] = int(not self.circuit.ioList[gate.inputs[0]])
+                self.circuit.ioList[gate.output] = int(
+                    not self.circuit.ioList[gate.inputs[0]])
             elif gate.gate_type == "BUF":
-                self.circuit.ioList[gate.output] = int(self.circuit.ioList[gate.inputs[0]])
+                self.circuit.ioList[gate.output] = int(
+                    self.circuit.ioList[gate.inputs[0]])
             elif gate.gate_type == "AND":
                 self.circuit.ioList[gate.output] = int(
                     self.circuit.ioList[gate.inputs[0]] & self.circuit.ioList[gate.inputs[1]])
@@ -71,4 +73,3 @@ class Simulation:
             elif gate.gate_type == "OR":
                 self.circuit.ioList[gate.output] = int(
                     self.circuit.ioList[gate.inputs[0]] or self.circuit.ioList[gate.inputs[1]])
-
