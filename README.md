@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/GravityGravity/ATG-for-circuit-faults/images/banner.jpg" 
+  <img src="https://github.com/GravityGravity/ATG-for-circuit-faults/tree/main/images/banner.jpg" 
        alt="ATPG Banner" 
        width="900">
 </p>
