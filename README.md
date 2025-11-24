@@ -4,10 +4,8 @@
        width="1600">
 </p>
 
-## 🔌📐
-
 <p align="center">
-  <b>Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults</b><br>
+ ## 🔌📐 <b>Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults</b><br>
   Final Project — Digital Circuits / VLSI Testing
 </p>
 
