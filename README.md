@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://github.com/GravityGravity/ATG-for-circuit-faults/tree/main/images/banner.jpg" 
        alt="ATPG Banner" 
-       width="900">
+       width="1600">
 </p>
 
 # 🔌📐
