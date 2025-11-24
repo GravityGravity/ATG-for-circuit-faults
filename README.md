@@ -2,12 +2,10 @@
   <img src="images/banner.jpg" 
        alt="ATPG Banner" 
        width="1600">
-</p>
 
-<p align="center">
- 🔌📐 <b>Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults</b><br>
+ # 🔌📐 Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults
   Final Project — Digital Circuits / VLSI Testing
-</p>
+
 
 ---
 
