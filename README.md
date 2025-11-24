@@ -4,7 +4,7 @@
        width="1600">
 </p>
   
- # 🔌📐 Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults
+ # 🔌📐 Automatic Test Generator for Single Stuck-At Faults
 ---
 
 ## Overview
