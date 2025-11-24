@@ -3,8 +3,6 @@
        alt="ATPG Banner" 
        width="1600">
 # 🔌📐 Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults
-
-
 ---
 
 ## Overview
