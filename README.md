@@ -1,2 +1,42 @@
-# ATG-for-circuit-faults
-Automatic Test Pattern Generator (ATPG) for single stuck-at faults — implements fault collapsing, logic simulation, and test generation algorithms (D-algorithm/PODEM) for combinational circuits.
+<p align="center">
+  <!-- Replace with your actual banner path -->
+  <img src="https://raw.githubusercontent.com/<YOUR-USERNAME>/<YOUR-REPO>/main/docs/banner.png" 
+       alt="ATPG Banner" 
+       width="900">
+</p>
+
+# 🔌📐
+
+<p align="center">
+  <b>Automatic Test Pattern Generator (ATPG) for Single Stuck-At Faults</b><br>
+  Final Project — Digital Circuits / VLSI Testing
+</p>
+
+---
+
+## Overview
+
+This repository contains my Python implementation of an **Automatic Test Pattern Generator (ATPG)** designed to analyze **single stuck-at faults** in combinational circuits.  
+The tool reads a gate-level netlist, simulates logic behavior with and without faults, and generates valid test vectors using multiple classical ATPG strategies.
+
+The project was developed as the final assignment for my university **VLSI Testing / Digital Circuits** course.
+
+---
+
+## Features
+
+- **Interactive command-line interface** with options to load circuits, collapse faults, simulate, and generate tests  
+- **Single stuck-at fault model** supporting both s-a-0 and s-a-1  
+- **ATPG method**:
+  - D-Algorithm  
+- **Fault collapsing** to reduce redundant faults  
+- **Logic and fault simulation** to verify propagation to primary outputs  
+- Clear text-based outputs and error handling for invalid inputs or malformed netlists
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+
