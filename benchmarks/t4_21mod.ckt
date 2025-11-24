@@ -1,0 +1,23 @@
+$ Circuit description for figure 4.21
+$ Author: Soumyaroop Roy
+$ Date: 04/2007
+$
+A $... primary input
+B $... primary input
+C $... primary input
+D $... primary input
+E $... primary input
+$
+$
+M $... primary output
+$
+$
+$ Output Type Inputs...
+$ ------ ---- ---------
+  f  and  A B
+  j   nor  C f
+  i   and  C D
+  k   or   i E
+  M  or   j k
+$
+$ end of circuit description
