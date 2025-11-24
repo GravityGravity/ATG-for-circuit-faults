@@ -1,5 +1,4 @@
 <p align="center">
-  <!-- Replace with your actual banner path -->
   <img src="https://github.com/GravityGravity/ATG-for-circuit-faults/images/banner.jpg" 
        alt="ATPG Banner" 
        width="900">
