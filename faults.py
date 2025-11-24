@@ -133,9 +133,6 @@ class FaultEngine:
                 if g.gate_id not in rel_gates:
                     rel_gates.add(g.gate_id)
 
-        print(rel_lines)
-        print(rel_gates)
-
         # Create Equivalence and Dominance Faults
         self._fault_check(rel_gates)
 
@@ -224,7 +221,7 @@ class FaultEngine:
         # PRINT COLLAPSED FAULT UNIVERSE
 
         print(
-            f'    {cl.Back.MAGENTA} FAULT COLLAPSED UNIVERSE {cl.Back.RESET}'
+            f'    {cl.Back.MAGENTA} FAULT COLLAPSED UNIVERSE {cl.Back.RESET}  {cl.Fore.MAGENTA} total: {sum(len(s) for s in self.state.universe_coll.values())}'
         )
 
         for line_id, sa_set in self.state.universe_coll.items():

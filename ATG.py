@@ -38,7 +38,7 @@ def gen_struct():
     print(cl.Fore.CYAN + 'DEBUG:   gen_struct()')  # debug
 
     ckt_name = input(
-        '    Please input desired circuit file name\n' + cl.Fore.YELLOW + 'ATG.py>>File Name> ' + cl.Style.RESET_ALL)
+        f'    {cl.Back.WHITE} > Please input desired circuit file name < {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> File Name> {cl.Style.RESET_ALL}')
 
     # Create path to benchmarks folder that contains .ckt circuit file
     ckt_path = os.path.join(os.path.join(
@@ -63,7 +63,7 @@ def gen_struct():
     selected_circuit = parse_circuit(ckt_path, ckt_name)
     selected_circuit.fanout_split()
     selected_circuit.print_circ()
-    print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED DATA STRUCT FOR CIRCUIT: {selected_circuit.circuit_name}')
+    print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED DATA STRUCT FOR CIRCUIT: {cl.Fore.YELLOW}{selected_circuit.circuit_name}')
     comms()
     return 0
 
@@ -74,6 +74,7 @@ def fault_coll():
     print(cl.Fore.CYAN + 'DEBUG:   fault_coll()')  # debug
     if circuit_check():
         return None
+    global selected_circuit
     selected_circuit.create_fault_universe()
     selected_circuit.fault_collapse()
     print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
@@ -102,8 +103,8 @@ def sim():
     print(cl.Fore.CYAN + 'DEBUG:   sim()')  # debug
     if circuit_check():
         return None
-    
-    circSim = Simulation("000",selected_circuit.circuit_name)
+    global selected_circuit
+    circSim = Simulation("000", selected_circuit)
     circSim.promptForParameters()
     circSim.Run()
 

@@ -378,6 +378,6 @@ class Circuit:
 
             print(f' {cl.Fore.MAGENTA}G_Output: ', end="")
             print(f' {value.gate_line_output} ', end="")
-            print('\n')
+        print('\n')
 
         print('==========FINISHED=========')

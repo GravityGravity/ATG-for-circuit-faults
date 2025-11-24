@@ -3,6 +3,7 @@
 
 import os
 import sys
+import colorama as cl
 
 # Contains circuit structure
 from Circ import Circuit, gate, line
@@ -13,17 +14,17 @@ from B_logic import *
 
 class Simulation:
 
-    testVector = ""
-    circuit = Circuit("undefined")
-
     def __init__(self, testVector="000", circuit: Circuit = None):
         self.testVector = testVector
         self.circuit = circuit
+        self.eval_gates: list = []
 
     def promptForParameters(self):
         print("Simulation Parameters:")
-        print("PLEASE INPUT TEST VECTOR:")
-        testVector = input()
+
+        testVector = input(
+            f'    {cl.Back.WHITE} > INPUT TEST VECTOR > {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> SIM> {cl.Style.RESET_ALL}')
+
         return testVector
 
     def Run(self):
@@ -34,13 +35,13 @@ class Simulation:
         print("Output : " + finalOutput)
 
     def simulate_circuit(self):
-        evaluate_gates: list = []
+        self.eval_gates: list = []
         while self.circuit.gates:
             # <--- added type hints
-            self.find_ready_gates(evaluate_gates: list)
-            self.evaluate_ready_gates(evaluate_gates: list)
+            self.find_ready_gates()
+            self.evaluate_ready_gates()
 
-    def find_ready_gates(self, evaluate_gates):
+    def find_ready_gates(self):
         for g_name, g in self.circuit.gates.items():
             ready = True
             for inp in g.gate_line_inputs:
@@ -49,12 +50,12 @@ class Simulation:
                     break
             if ready:
                 # <------ Cant use exact name 'gate' as gate is a class type
-                evaluate_gates.append(gate)
+                self.eval_gates.append(g)
                 # <------ Cant use exact name 'gate' as gate is a class type
                 self.circuit.gates.remove(gate)
 
-    def evaluate_ready_gates(self, evaluate_gates):
-        for gate in evaluate_gates:
+    def evaluate_ready_gates(self):
+        for gate in self.eval_gates:
             if gate.gate_type == "INV":
                 self.circuit.ioList[gate.output] = int(
                     not self.circuit.ioList[gate.inputs[0]])
