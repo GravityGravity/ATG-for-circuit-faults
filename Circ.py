@@ -283,13 +283,11 @@ class Circuit:
         are modeled as separate lines.
         """
         for fanout in self.fanouts:
-            print(fanout)  # Debug
             fanout_line = self.lines.get(fanout)
             src_line_nxt = set()
 
             # For each destination gate, create a split line and rewire.
             for i, nxt_gate in enumerate(fanout_line.nxt):
-                print(i)  # Debug
 
                 # Create new split line (e.g., "g.1", "g.2", ...).
                 split_line_id = fanout + f'.{i + 1}'
