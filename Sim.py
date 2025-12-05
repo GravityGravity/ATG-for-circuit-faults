@@ -23,11 +23,9 @@ class Simulation:
     def promptForParameters(self):
         print("Simulation Parameters:")
         
-        # We must assign the input to self.testVector so it persists
         self.testVector = input(
             f'    {cl.Back.WHITE} > INPUT TEST VECTOR > {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> SIM> {cl.Style.RESET_ALL}'
         )
-        # Strip whitespace just in case
         self.testVector = self.testVector.strip()
 
     def Run(self):
@@ -40,7 +38,6 @@ class Simulation:
         self.line_state = {lid: -1 for lid in self.circuit.lines}
 
         # 2. Map Test Vector to Primary Inputs
-        # We sort the PIs to ensure the vector "101" maps to inputs A, B, C consistently
         sorted_inputs = sorted(list(self.circuit.Primary_in))
         
         if len(self.testVector) != len(sorted_inputs):
@@ -53,7 +50,10 @@ class Simulation:
             try:
                 val = int(self.testVector[i])
                 if val not in [0, 1]: raise ValueError
-                self.line_state[input_name] = val
+                
+                # USE HELPER FUNCTION to handle Fanout Propagation
+                self.set_line_value(input_name, val)
+                
             except ValueError:
                  print(f"{cl.Fore.RED}Error: Test vector must contain only 0s and 1s.{cl.Style.RESET_ALL}")
                  return
@@ -63,7 +63,6 @@ class Simulation:
 
         # 4. Print Results
         finalOutput = ""
-        # Sort outputs for consistent display
         sorted_outputs = sorted(list(self.circuit.Primary_out))
         
         print(f"{cl.Fore.GREEN}Simulation Complete:{cl.Style.RESET_ALL}")
@@ -75,6 +74,22 @@ class Simulation:
             
         print(f"  Full Output Vector: {finalOutput}")
 
+    def set_line_value(self, line_id, value):
+        """
+        Sets the value of a line and propagates it if it's a fanout stem.
+        This bridges the gap created by fanout_split().
+        """
+        self.line_state[line_id] = value
+        
+        # Check if this line is a fanout stem
+        # In Circ.py, fanout stems have is_fanout=True and their 'nxt' set contains the branch line IDs
+        line_obj = self.circuit.lines.get(line_id)
+        if line_obj and line_obj.is_fanout:
+            # Propagate value to all branches (e.g., '1gat' -> '1gat.1', '1gat.2')
+            for branch_id in line_obj.nxt:
+                # Recursively set branches (though branches typically aren't stems themselves)
+                self.set_line_value(branch_id, value)
+
     def simulate_circuit(self):
         """
         Iteratively simulates gates until all signals settle or no progress is made.
@@ -82,7 +97,6 @@ class Simulation:
         gates_to_evaluate = set(self.circuit.gates.keys())
         progress = True
 
-        # Loop until we can't evaluate any more gates (either done or stuck)
         while progress and gates_to_evaluate:
             progress = False
             evaluated_this_cycle = set()
@@ -105,21 +119,18 @@ class Simulation:
                 if inputs_ready:
                     result = self.evaluate_gate(g.type, input_values)
                     
-                    # Update the output line
-                    self.line_state[g.gate_line_output] = result
+                    # USE HELPER FUNCTION to update output (handles fanouts automatically)
+                    self.set_line_value(g.gate_line_output, result)
                     
-                    # Mark gate as done
                     evaluated_this_cycle.add(gid)
                     progress = True
 
-            # Remove evaluated gates from the set so we don't process them again
             gates_to_evaluate -= evaluated_this_cycle
 
     def evaluate_gate(self, gate_type, inputs):
         """
         Helper function to calculate logic output based on gate type.
         """
-        # Using g_types Enum from B_logic.py
         if gate_type == g_types.AND:
             return 1 if all(inputs) else 0
         
@@ -127,7 +138,6 @@ class Simulation:
             return 1 if any(inputs) else 0
         
         elif gate_type == g_types.NOT:
-            # NOT gates have only 1 input
             return 1 if not inputs[0] else 0
         
         elif gate_type == g_types.NAND:
@@ -137,7 +147,6 @@ class Simulation:
             return 0 if any(inputs) else 1
         
         elif gate_type == g_types.XOR:
-            # XOR is 1 if the number of True inputs is odd
             return sum(inputs) % 2
             
         return 0
