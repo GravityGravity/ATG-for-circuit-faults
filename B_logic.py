@@ -8,7 +8,13 @@
 from enum import Enum, auto
 
 
+class TGM(Enum):  # Test Generation Methods
+    DA = 'D_algo'
+    SIM = 'Simulation'
+
 # Binary Logic Enumeration Types
+
+
 class L(Enum):
     ZERO = 0
     ONE = 1

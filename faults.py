@@ -6,11 +6,31 @@
 #       - FaultEngine: holds all fault-related state and algorithms for a Circuit
 
 from __future__ import annotations
-from B_logic import g_types, int_inverse
+from B_logic import g_types, int_inverse, TGM, L
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # These imports are ONLY for type checking, not executed at runtime
     from Circ import Circuit, gate
+
+
+class fault_tv:  # Fault Test Vector
+    TG_method: TGM = None
+    fault_line: str
+    SSA: L
+
+    pass
+
+
+class f_tvs:  # Fault Test Vectors
+
+    remain: dict[str, set[int]] = None  # Faults requiring
+
+    def add_fault_tv(self):
+        pass
+
+
+class D_fault_tv(fault_tv):
+    pass
 
 
 class EquivalenceFaultClass:
