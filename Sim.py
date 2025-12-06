@@ -52,7 +52,7 @@ class Simulation:
                 # <------ Cant use exact name 'gate' as gate is a class type
                 self.eval_gates.append(g)
                 # <------ Cant use exact name 'gate' as gate is a class type
-                self.circuit.gates.remove(gate)
+                self.circuit.gates.remove(g)
 
     def evaluate_ready_gates(self):
         for gate in self.eval_gates:
