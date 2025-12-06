@@ -15,7 +15,7 @@ class Simulation:
 
     def __init__(self, testVector="", circuit: Circuit = None):
         self.testVector = testVector
-        self.faultVector = ""
+        self.faultVectorInput = ""
         self.circuit = circuit
         # Dictionary to hold the current logic value (0 or 1) for each line ID
         # Initialize all lines to -1 (unknown)
@@ -29,10 +29,11 @@ class Simulation:
             f'    {cl.Back.WHITE} > INPUT TEST VECTOR > {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> SIM> {cl.Style.RESET_ALL}'
         ).strip()
         
-        # 2. Get Fault Vector (Optional)
-        print(f"    {cl.Style.DIM}(Optional) Enter Primary Input Faults (same length). Use '0'/'1' for faults, 'X' for none.{cl.Style.RESET_ALL}")
-        self.faultVector = input(
-            f'    {cl.Back.WHITE} > INPUT FAULT VECTOR > {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> SIM> {cl.Style.RESET_ALL}'
+        # 2. Get Fault Vector List
+        print(f"    {cl.Style.DIM}(Optional) Enter list of Fault Vectors (e.g., {{0000, 0011}} or just 0000).{cl.Style.RESET_ALL}")
+        print(f"    {cl.Style.DIM}Use '0'/'1' for faults, 'X' for none.{cl.Style.RESET_ALL}")
+        self.faultVectorInput = input(
+            f'    {cl.Back.WHITE} > INPUT FAULT LIST > {cl.Back.RESET}\n{cl.Fore.YELLOW} ATG.py>> SIM> {cl.Style.RESET_ALL}'
         ).strip()
 
     def Run(self):
@@ -56,63 +57,65 @@ class Simulation:
         print(f"{cl.Fore.GREEN}Good Output:{cl.Style.RESET_ALL} {good_output}")
 
         # If no faults provided, we are done
-        if not self.faultVector:
+        if not self.faultVectorInput:
             return
 
         # ==========================================
-        # 2. Run Fault Simulations
+        # 2. Parse Fault List
         # ==========================================
-        if len(self.faultVector) != len(sorted_inputs):
-            print(f"{cl.Fore.RED}Error: Fault vector length ({len(self.faultVector)}) must match input vector length.{cl.Style.RESET_ALL}")
+        # Clean the input: remove braces and split by comma
+        cleaned_input = self.faultVectorInput.replace('{', '').replace('}', '')
+        
+        # Handle empty case after strip
+        if not cleaned_input:
             return
 
-        print(f"\n{cl.Fore.CYAN}--- Running Fault Simulations ---{cl.Style.RESET_ALL}")
+        raw_list = cleaned_input.split(',')
+        fault_vectors = [v.strip() for v in raw_list if v.strip()]
+
+        print(f"\n{cl.Fore.CYAN}--- Running Fault Simulations ({len(fault_vectors)} vectors) ---{cl.Style.RESET_ALL}")
         
         faults_detected = 0
 
-        # Iterate through the fault vector characters
-        for i, fault_char in enumerate(self.faultVector):
-            # Only process if it is a valid binary fault ('0' or '1')
-            if fault_char in ['0', '1']:
-                target_line = sorted_inputs[i]
-                stuck_at_val = int(fault_char)
+        # ==========================================
+        # 3. Iterate Through Each Fault Vector
+        # ==========================================
+        for f_vec in fault_vectors:
+            # Check length compatibility
+            if len(f_vec) != len(sorted_inputs):
+                print(f"{cl.Fore.YELLOW}Warning: Skipping invalid length vector '{f_vec}'{cl.Style.RESET_ALL}")
+                continue
 
-                # Prepare a faulty input vector
-                # We copy the original logic, but override the specific input to the stuck-at value
-                # (A stuck-at fault on a PI essentially overrides the test vector value for that line)
-                
-                # Note: We don't change the testVector string itself, we just tell the 
-                # run_single_pass method to inject this specific fault.
-                
-                bad_output = self.run_single_pass(
-                    sorted_inputs, 
-                    self.testVector, 
-                    fault_line=target_line, 
-                    fault_val=stuck_at_val
-                )
+            # Run simulation with this specific fault mask
+            bad_output = self.run_single_pass(
+                sorted_inputs, 
+                self.testVector, 
+                fault_mask=f_vec
+            )
 
-                # Compare results
-                if bad_output != good_output:
-                    faults_detected += 1
-                    print(f"  {cl.Fore.RED}[DETECTED]{cl.Style.RESET_ALL} Fault: {target_line} SA-{stuck_at_val} | Output: {bad_output} (Expected: {good_output})")
-                else:
-                    # Optional: Print undetected faults if you want verbosity
-                    # print(f"  [Undetected] Fault: {target_line} SA-{stuck_at_val} | Output: {bad_output}")
-                    pass
+            # Compare results
+            if bad_output != good_output:
+                faults_detected += 1
+                print(f"  {cl.Fore.RED}[DETECTED]{cl.Style.RESET_ALL} Fault Vector: {f_vec} | Output: {bad_output} (Expected: {good_output})")
+            else:
+                # Optional: Verbose output for undetected
+                # print(f"  [Undetected] Fault Vector: {f_vec} | Output: {bad_output}")
+                pass
 
         if faults_detected == 0:
-            print(f"{cl.Fore.YELLOW}No faults detected by this vector.{cl.Style.RESET_ALL}")
+            print(f"{cl.Fore.YELLOW}No faults detected by any provided vector.{cl.Style.RESET_ALL}")
         else:
-            print(f"{cl.Fore.GREEN}Total Faults Detected: {faults_detected}{cl.Style.RESET_ALL}")
+            print(f"{cl.Fore.GREEN}Total Fault Vectors Detected: {faults_detected}{cl.Style.RESET_ALL}")
 
-    def run_single_pass(self, sorted_inputs, vector_str, fault_line=None, fault_val=None):
+    def run_single_pass(self, sorted_inputs, vector_str, fault_mask=None):
         """
         Runs a single simulation pass.
         Args:
             sorted_inputs: list of PI names
-            vector_str: string of 0s and 1s
-            fault_line: (Optional) Name of PI to force to a stuck-at value
-            fault_val: (Optional) Value (0 or 1) to force the fault_line to
+            vector_str: string of 0s and 1s (Good Values)
+            fault_mask: (Optional) string of 0s, 1s, and Xs. 
+                        '0'/'1' overrides the input to that value.
+                        'X' (or anything else) leaves the original vector_str value.
         Returns:
             String representing the output vector
         """
@@ -125,10 +128,15 @@ class Simulation:
                 # Default value from test vector
                 val = int(vector_str[i])
                 
-                # INJECT FAULT: If this line is the one we are currently testing,
-                # override its value with the stuck-at value.
-                if input_name == fault_line:
-                    val = fault_val
+                # INJECT FAULT MASK
+                # If a fault mask is provided, check the character at this index
+                if fault_mask:
+                    mask_char = fault_mask[i]
+                    if mask_char == '0':
+                        val = 0
+                    elif mask_char == '1':
+                        val = 1
+                    # If 'X' or other, keep original 'val'
 
                 self.set_line_value(input_name, val)
             except ValueError:
