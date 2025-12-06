@@ -13,7 +13,7 @@ from Sim import Simulation
 
 from Circ import Circuit
 
-from D_algo import d_algorithm
+from d_algo import d_algorithm
 
 from parser_runner import parse_circuit
 
