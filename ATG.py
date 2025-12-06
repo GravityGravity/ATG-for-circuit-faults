@@ -13,6 +13,8 @@ from Sim import Simulation
 
 from Circ import Circuit
 
+from D_algo import d_algorithm
+
 from parser_runner import parse_circuit
 
 # Auto reset colored console print
@@ -75,9 +77,12 @@ def fault_coll():
     if circuit_check():
         return None
     global selected_circuit
-    selected_circuit.create_fault_universe()
-    selected_circuit.fault_collapse()
-    print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
+    if not selected_circuit.faults:
+        selected_circuit.create_fault_universe()
+        selected_circuit.fault_collapse()
+        print(f'{cl.Fore.GREEN} ✓ SUCESSFULLY!{cl.Fore.WHITE} CREATED FAULT UNIVERSE FOR CIRCUIT: {selected_circuit.circuit_name}')
+    else:
+        print(f'{cl.Fore.GREEN} ~~ {cl.Fore.WHITE} FAULT UNIVERSE ALREADY EXISTS FOR {selected_circuit.circuit_name}')
     return 1
 
 
@@ -100,10 +105,14 @@ def fc_display():
 def sim():
     """Option 3: - Simulate Circuit
     """
+    global selected_circuit
     print(cl.Fore.CYAN + 'DEBUG:   sim()')  # debug
     if circuit_check():
         return None
-    global selected_circuit
+    if not selected_circuit.faults:
+        print(
+            f'{cl.Fore.RED}     ERROR: Circuit cannot perform SIMULATION without fault collapse list.\n               Please collapse faults with ->{cl.Fore.BLUE} option 1\n')
+        return None
     circSim = Simulation("000", selected_circuit)
     circSim.promptForParameters()
     circSim.Run()
@@ -115,18 +124,12 @@ def Dalgo():
     print(cl.Fore.CYAN + 'DEBUG:   Dalgo()')  # debug
     if circuit_check():
         return None
-    if not selected_circuit.fault_classes:
+    if not selected_circuit.faults:
         print(
-            f'{cl.Fore.RED}     ERROR: Circuit cannot perform D-ALGO without fault collapse.\n               Please collapse faults with ->{cl.Fore.BLUE} option 1\n')
-    # ================================================================================================================
-    # ================================================================================================================
-    # ================================================================================================================
-    # ================================================================================================================
-    # STARMAN IMPLEMENT YOUR D-ALGO INTO THE D-ALGO.py FILE AND CALL IT HERE <------------------------------------------------------------------------------------
-    # ================================================================================================================
-    # ================================================================================================================
-    # ================================================================================================================
-    # ===============================================================================================================================
+            f'{cl.Fore.RED}     ERROR: Circuit cannot perform D-ALGO without fault collapse list.\n               Please collapse faults with ->{cl.Fore.BLUE} option 1\n')
+        return None
+    d_algorithm(selected_circuit)
+
     return 1
 
 
