@@ -97,44 +97,44 @@ class FaultEngine:
         """
         self.state.universe.clear()
         self.state.universe = {}
-        u = self.state.universe
+        self.u = self.state.universe
 
         self.state.universe_coll.clear()
         self.state.universe_coll = {}
-        cu = self.state.universe_coll
+        self.cu = self.state.universe_coll
 
-        circ = self.circ
+        self.state.Dclasses.clear()
+        self.state.Eclasses.clear()
 
         # Primary inputs
-        for inp in circ.Primary_in:
-            u[inp] = {0, 1}
-            cu[inp] = {0, 1}
+        for inp in self.circ.Primary_in:
+            self.u[inp] = {0, 1}
+            self.cu[inp] = {0, 1}
 
         # Fanouts
-        for fanout in circ.fanouts:
-            fanout_line = circ.get_line(fanout)
-            if fanout not in u:
-                u[fanout] = {0, 1}
-                cu[fanout] = {0, 1}
+        for fanout in self.circ.fanouts:
+            fanout_line = self.circ.get_line(fanout)
+            if fanout not in self.u:
+                self.u[fanout] = {0, 1}
+                self.cu[fanout] = {0, 1}
 
             for nxt_line in fanout_line.nxt:
-                u[nxt_line] = {0, 1}
-                cu[nxt_line] = {0, 1}
+                self.u[nxt_line] = {0, 1}
+                self.cu[nxt_line] = {0, 1}
 
     def collapse(self) -> None:
         """
         Fault collapsing logic (refactored from Circuit.fault_collapse).
         """
-        circ = self.circ
         rel_gates: set[str] = set()
         rel_lines: set[str] = set()
 
         # Traverse from primary inputs one level forward as before with related lines and gates
-        for inp in circ.Primary_in:
+        for inp in self.circ.Primary_in:
 
-            if circ.get_line(inp).is_fanout:
-                for l in circ.get_line(inp).nxt:
-                    g = circ.get_gate(l)
+            if self.circ.get_line(inp).is_fanout:
+                for l in self.circ.get_line(inp).nxt:
+                    g = self.circ.get_gate(l)
                     rel_lines.add(l)
                     if g.gate_line_output not in rel_lines:
                         rel_lines.add(g.gate_line_output)
@@ -142,7 +142,7 @@ class FaultEngine:
                         rel_gates.add(g.gate_id)
                 continue
 
-            g = circ.get_gate(inp)
+            g = self.circ.get_gate(inp)
             if not g:
                 continue
             rel_lines.add(inp)
@@ -158,23 +158,23 @@ class FaultEngine:
 
         # Store collapsed faults
 
-        collapsed_f: list[tuple[str, int]] = []
+        self.collapsed_f: list[tuple[str, int]] = []
         for fc in self.state.Eclasses:
             for f in fc.lines:
                 if not f == fc.selected_f:
-                    if f[0] in circ.Primary_in:
-                        collapsed_f.append(f)
+                    if f[0] in self.circ.Primary_in:
+                        self.collapsed_f.append(f)
 
         for fc in self.state.Dclasses:
-            collapsed_f.append(fc.selected_f)
+            self.collapsed_f.append(fc.selected_f)
             if fc.union:
-                for u in fc.union:
-                    collapsed_f.append(u.selected_f)
+                for self.u in fc.union:
+                    self.collapsed_f.append(self.u.selected_f)
 
         # Collapsing Occurs Below Here
 
         for l, f in self.state.universe.items():
-            for coll_l, sa in collapsed_f:
+            for coll_l, sa in self.collapsed_f:
                 if l == coll_l:
                     self.state.universe_coll[l].remove(sa)
 
@@ -185,11 +185,11 @@ class FaultEngine:
         import colorama as cl  # local import to avoid forcing colorama on non-CLI code
         cl.init(autoreset=True)
 
-        cu = self.state.universe
+        self.cu = self.state.universe
         Dclasses = self.state.Dclasses
         Eclasses = self.state.Eclasses
 
-        total_faults_est = len(cu) * 2
+        total_faults_est = len(self.cu) * 2
 
         # Print Fault Universe
 
@@ -198,7 +198,7 @@ class FaultEngine:
             f'{cl.Fore.RED} (total: {total_faults_est})'
         )
 
-        for line_id, sa_set in cu.items():
+        for line_id, sa_set in self.cu.items():
             print(f' {cl.Fore.RED}  {line_id}', end="")
             for fault in sa_set:
                 print(f' SA{str(fault)} ', end="")
@@ -224,8 +224,8 @@ class FaultEngine:
                 print('\n', end="")
             if fc.union:
                 print(f'      UNION')
-                for u in fc.union:
-                    print(f'        {u.selected_f}')
+                for self.u in fc.union:
+                    print(f'        {self.u.selected_f}')
             print('\n', end="")
 
         # PRINT EQUIVALENCE
