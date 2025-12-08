@@ -3,6 +3,7 @@
 import os
 import sys
 from dataclasses import dataclass
+from colorama import Fore as F, Style as S
 
 # Contains circuit structure
 from Circ import *
@@ -48,24 +49,19 @@ def d_algorithm(circuit: Circuit = None):
                 continue
         D_lines[l_name] = LineState(l_obj=l_obj, val=L.X)
 
-    D_print_lines()
-
     # D ALGO IMPLEMENTATION
 # ----------------------------------------
 
     imply_and_check(f_line)
-    D_print_lines()
 
     if not PO_has_D():
 
         # Perform D-frontier queue
-        print('    ---- ENTERED D-FRONTIER... ----')
-        print(f'    D-front -> {D_frontier}')
+        print('    ENTERED D-FRONTIER...')
         while (D_frontier):
             Dfront_process(D_circuit.get_gate(D_frontier[0]))
             D_frontier.pop(0)
             # --------------------------------------
-    D_print_lines()  # Debug
     if not PO_has_D():
         # ----------------PERFORM FAULT VECTOR UPDATE HERE !!!!
         return False
@@ -76,69 +72,80 @@ def d_algorithm(circuit: Circuit = None):
         g = D_circuit.get_gate(g_str)
         if D_lines[g.gate_line_output].l_obj == f_line:
             J_frontier.append(g.gate_id)
-            print(f'         DALGO 1 J APPENDED gate {g.gate_id}')
             continue
 
         for inp in g.gate_line_inputs:
             if D_lines[inp].val == L.X and D_lines[g.gate_line_output].val != L.X:
                 J_frontier.append(g.gate_id)
-                print(f'        DALGO 2 J APPENDED gate {g.gate_id}')
                 break
 
-    print('    ---- ENTERED J-FRONTIER... ----')
+    print('    ENTERED J-FRONTIER...')
     while (J_frontier):
         Jfront_process(D_circuit.get_gate(J_frontier[0]))
         J_frontier.pop(0)
 
+    print(' FINAL RESULT:')
     D_print_lines()  # Debug
 
     # Check Primary Inputs
+
+    prim_in = [D_lines[l] for l in D_circuit.Primary_in]
+
+    print('\n\n Test Vector:')
+
+    for p in prim_in:
+        print(f'   {p.l_obj.line_id} - {p.val}')
 
     return True
 
 
 def promptForParameters():  # Thank you St4armanz
-    print("D_algo Parameters:")
+    print(f"{F.CYAN}D_algo Parameters:{S.RESET_ALL}")
 
     options_list: list[tuple[str, int]] = []
 
+    # Build universe of selectable faults
     for f_li, f_val in D_circuit.faults.state.universe_coll.items():
         for v in sorted(f_val):
             options_list.append((f_li, v))
 
-    # Build a numbered menu
-    print("    Select an option:")
-    for idx, (l, SSAval) in enumerate(options_list, start=1):
-        print(f"    {idx}) {l} -> SSA-{SSAval}")
+    # Display the menu header
+    print(f"{F.CYAN}    Select an option:{S.RESET_ALL}")
 
-    # Example selection logic
-    while (True):
-        choice_str = input("   Enter choice number: ")
+    # Display numbered options
+    for idx, (line_name, SSAval) in enumerate(options_list, start=1):
+        print(f"{F.YELLOW}    {idx}) {line_name} -> SSA-{SSAval}{S.RESET_ALL}")
+
+    # Prompt loop
+    while True:
+        choice_str = input(f"{F.CYAN}   Enter choice number: {S.RESET_ALL}")
+
         try:
             choice = int(choice_str)
         except ValueError:
-            print("Invalid input. Please enter a valid integer.")
+            print(f"{F.RED}Invalid input. Please enter a valid integer.{S.RESET_ALL}")
             continue
+
         if 1 <= choice <= len(options_list):
             selected_f_line, selected_f_val = options_list[choice - 1]
-            print(f"You chose: {selected_f_line} -> {selected_f_val}")
+
+            print(
+                f"{F.GREEN}You chose: {selected_f_line} -> SSA-{selected_f_val}{S.RESET_ALL}"
+            )
             break
         else:
-            print("Invalid choice. Try Again!")  # Debug / Fix
+            print(f"{F.RED}Invalid choice. Try Again!{S.RESET_ALL}")
             continue
 
     return selected_f_line, selected_f_val
 
 
 def D_print_lines():
-    print("   D_algo line print:")
     for l_name, l_obj in D_lines.items():
         print(f'     {l_name} {l_obj.val}')
 
 
 def Jfront_process(g: gate):
-
-    print(f'Jfront({g.gate_id})')
 
     C = g.type.value[0]  # Controlling Value
     I = g.type.value[1]  # Inversion Value
@@ -196,25 +203,19 @@ def Jfront_process(g: gate):
 
     if I:
         if int_inverse(C) == output_l.val:
-            is_C_activated: True
+            is_C_activated = True
     elif C == output_l.val:
-        is_C_activated: True
+        is_C_activated = True
 
     if is_C_activated:
         for inp in inputs:
             if inp.val == L.X:
                 inp.val = C
-                print(
-                    f'    C_act TRUE input_line: {inp.l_obj.line_id} set to {inp.val}')
 
     if not is_C_activated:
         for inp in inputs:
             if inp.val == L.X:
                 inp.val = int_inverse(C)
-                print(
-                    f'    C_act FALSE input_line: {inp.l_obj.line_id} set to {inp.val}')
-
-    print(f'     output_line {output_l.l_obj.line_id} was {output_l.val}')
 
     if not Jfront_check(g):
         return False
@@ -238,30 +239,47 @@ def Jfront_check(g: gate):
 
     for inp in inputs:
 
+        if inp.l_obj.line_id[:-2] in D_circuit.fanouts and inp.val != L.X:
+            J_fanout(D_circuit.get_line(inp.l_obj.line_id[:-2]), inp.val)
+
         for g_iter in D_circuit.gates:
             select_gate = D_circuit.get_gate(g_iter)
 
             if select_gate.gate_line_output == inp.l_obj.line_id:
                 gates_to_check.append(select_gate)
 
-    print(f' -> gates_to_check: {gates_to_check}')
-
     for g_obj in gates_to_check:
         for g_inps in g_obj.gate_line_inputs:
             if D_lines[g_inps].val == L.X and g_obj.gate_id not in J_frontier:
                 J_frontier.append(g_obj.gate_id)
-                print(f'         JCHECK2 APPENDED gate {g_obj.gate_id}')
                 break
 
     return True
 
 
+def J_fanout(l: line, val: int):
+    stem_line = D_lines[l.line_id]
+    stem_line.val = val
+
+    found_gate: gate = None
+
+    if l.line_id in D_circuit.Primary_in:
+        return True
+
+    for g_iter in D_circuit.gates:
+        select_gate = D_circuit.get_gate(g_iter)
+
+        if select_gate.gate_line_output == l.line_id:
+            for g_inps in select_gate.gate_line_inputs:
+                if D_lines[g_inps].val == L.X and select_gate.gate_id not in J_frontier:
+                    J_frontier.append(select_gate.gate_id)
+                    return True
+
+    return False
 # I guess forward imply constantly until ti reachs output
 
 
 def Dfront_process(g: gate):
-
-    print(f'    Dfront_process(): processed gate {g.gate_id}')
 
     C = g.type.value[0]  # Controlling Value
     I = g.type.value[1]  # Inversion Value
@@ -311,9 +329,6 @@ def Dfront_process(g: gate):
 
 def imply_and_check(D_line: line):
 
-    print(f'imply_check(): current line {D_line.line_id}')
-    print(f'                            nxt: {D_line.nxt}')
-
     if not D_line.nxt:
         return True  # Fault has reached PO or Errord
 
@@ -337,7 +352,6 @@ def imply_and_check(D_line: line):
             if result in (L.D, L.D_):
                 return imply_and_check(D_lines[g.gate_line_output].l_obj)
             else:
-                print(f'    Added {g.gate_id} to D-Frontier Queue:')
                 D_frontier.append(g.gate_id)
 
         else:

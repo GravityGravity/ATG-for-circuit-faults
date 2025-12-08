@@ -180,7 +180,13 @@ while (True):
             not_imp('6')
         case '7' | 'exit':
             print(cl.Back.YELLOW + '    EXITING PROGRAM    ')
-            exit(0)
+            if circuit_check():
+                exit(0)
+            else:
+                if selected_circuit.faults:
+                    selected_circuit.print_TestV_list()
+                    exit(0)
+                exit(0)
         case 'help' | '8':
             comms()
         case _:
