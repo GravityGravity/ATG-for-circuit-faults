@@ -108,7 +108,7 @@ GATE_OPS: dict[g_types, tuple[int, callable]] = {
 }
 
 
-def op_case(gtype: g_types, *rands: L) -> L:
+def op_case(gtype: g_types, *rands: L) -> L:         #Gate operation matching based on opcase
     if gtype == g_types.NOT:
         if len(rands) != 1:
             raise ValueError("NOT gate takes exactly 1 input")
@@ -145,7 +145,7 @@ def op_3xor(rand1: L, rand2: L, rand3: L):
     return (L(XOR_TABLE[(rand1.value, rand2.value)]))
 
 
-def int_inverse(var):
+def int_inverse(var):  #Inverter inverse
     if (var == L.X):
         return L.X
     if (var == 1):

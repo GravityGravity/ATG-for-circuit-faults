@@ -73,28 +73,11 @@ class FaultState:
 
 
 class FaultEngine:
-    """
-    Encapsulates all fault-related data and operations for a Circuit.
-
-    Access pattern:
-        circ.faults.create_universe()
-        circ.faults.collapse()
-        circ.faults.print_universe()
-    """
-
     def __init__(self, circuit: Circuit):
         self.circ = circuit          # Back-reference to the owning Circuit
         self.state = FaultState()
 
     def create_universe(self) -> None:
-        """
-        Build the initial (un-collapsed) single stuck-at fault universe.
-
-        Policy (same as you had in Circuit.create_fault_universe):
-          - Every primary input line gets {SA0, SA1}.
-          - Every fanout stem line gets {SA0, SA1}.
-          - Every fanout branch (line in fanout_line.nxt) gets {SA0, SA1}.
-        """
         self.state.universe.clear()
         self.state.universe = {}
         self.u = self.state.universe
@@ -123,9 +106,6 @@ class FaultEngine:
                 self.cu[nxt_line] = {0, 1}
 
     def collapse(self) -> None:
-        """
-        Fault collapsing logic (refactored from Circuit.fault_collapse).
-        """
         rel_gates: set[str] = set()
         rel_lines: set[str] = set()
 
@@ -179,9 +159,6 @@ class FaultEngine:
                     self.state.universe_coll[l].remove(sa)
 
     def print_universe(self) -> None:
-        """
-        Pretty-print the current fault universe and classes.
-        """
         import colorama as cl  # local import to avoid forcing colorama on non-CLI code
         cl.init(autoreset=True)
 
@@ -254,9 +231,6 @@ class FaultEngine:
         print('==========FINISHED=========')
 
     def _fault_check(self, gate_list: set) -> None:
-        """
-        Internal helper implementing your old Circuit.fault_check logic.
-        """
         for rg in gate_list:
             g = self.circ.get_gate(rg)
 
